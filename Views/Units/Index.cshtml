@@ -1,0 +1,58 @@
+﻿@model List<PizzaTownDHA.Models.Entities.Unit>
+
+@{
+    ViewData["Title"] = "Units";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📦 Units</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add New</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Base Unit</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                        No units found. Click "Add New" to get started.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var unit in Model)
+                {
+                    <tr>
+                        <td><strong>@unit.UnitSymbol</strong></td>
+                        <td>@unit.UnitName</td>
+                        <td><span class="badge bg-secondary">@unit.Category</span></td>
+                        <td>@(unit.IsBaseUnit ? "✅ Yes" : "❌ No")</td>
+                        <td class="text-center">
+                            <a asp-action="Edit" asp-route-id="@unit.Id" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@unit.Id" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
