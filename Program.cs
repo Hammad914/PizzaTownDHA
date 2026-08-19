@@ -5,11 +5,12 @@ using PizzaTownDHA.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("Pizza_Town_DHA");
+//var connectionString = builder.Configuration.GetConnectionString("Pizza_Town_DHA");
+var connectionString = builder.Configuration.GetConnectionString("Pizza Town DHA");
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new Exception("Connection string 'Pizza_Town_DHA' not found in appsettings.json");
+    throw new Exception("Connection string 'Pizza Town DHA' not found in appsettings.json");
 }
 // ✅ Debug: Print available connection strings
 Console.WriteLine($"Connection string: '{connectionString}'");
