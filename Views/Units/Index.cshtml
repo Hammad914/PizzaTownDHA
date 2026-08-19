@@ -1,58 +1,413 @@
 ﻿@model List<PizzaTownDHA.Models.Entities.Unit>
-
 @{
-    ViewData["Title"] = "Units";
+    ViewData["Title"] = "Units Management";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>📦 Units</h2>
-        <a asp-action="Create" class="btn btn-primary">+ Add New</a>
-    </div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+<style>
+    body {
+        background-color: #f8f6f3;
+        color: #222222;
     }
 
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Symbol</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Base Unit</th>
-                <th class="text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-3">
-                        No units found. Click "Add New" to get started.
-                    </td>
-                </tr>
+    .page-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .info-card {
+        flex: 0 0 220px;
+        max-width: 220px;
+        border: 1px solid #e5ddd4;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease;
+        padding: 1rem 0.5rem;
+        text-align: center;
+    }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        }
+
+        .info-card .bi {
+            font-size: 1.6rem;
+            color: #777;
+        }
+
+        .info-card .bi-database {
+            color: #b33c2e;
+        }
+
+        .info-card .bi-hash {
+            color: #b33c2e;
+        }
+
+        .info-card h5 {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .info-card h2 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+    .search-box {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+        background: #ffffff;
+        border: 1px solid #ddd6ce;
+        padding: 0.6rem 1rem;
+    }
+
+    .search-btn {
+        border-radius: 0 10px 10px 0;
+        background-color: #b33c2e;
+        color: white;
+        border: 1px solid #b33c2e;
+        padding: 0 1.5rem;
+    }
+
+    .table-custom {
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+        .table-custom thead {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+            .table-custom thead th {
+                font-size: 0.85rem;
+                padding: 1rem 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
             }
-            else
+
+        .table-custom tbody td {
+            font-size: 1rem;
+            padding: 1rem 1rem;
+            vertical-align: middle;
+            color: #222;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f9f6f2;
+        }
+
+    .action-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        transition: transform 0.2s ease;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 3px;
+    }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+    .btn-icon-view {
+        background-color: #f0efed;
+        color: #444;
+    }
+
+        .btn-icon-view:hover {
+            background-color: #dcdcdc;
+        }
+
+    .btn-icon-edit {
+        background-color: transparent;
+        color: #b45f06;
+        border: 1px solid #b45f06;
+    }
+
+        .btn-icon-edit:hover {
+            background-color: #b45f06;
+            color: #fff;
+        }
+
+    .btn-icon-delete {
+        background-color: transparent;
+        color: #ba2d0b;
+        border: 1px solid #ba2d0b;
+    }
+
+        .btn-icon-delete:hover {
+            background-color: #ba2d0b;
+            color: #fff;
+        }
+
+    .modal-detail-row {
+        border-bottom: 1px solid #f0eeea;
+        padding: 10px 0;
+    }
+
+        .modal-detail-row span:first-child {
+            color: #777;
+            font-weight: 600;
+        }
+
+        .modal-detail-row span:last-child {
+            font-weight: 500;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1a1a;">
+                <i class="bi bi-boxes" style="color: #b33c2e; margin-right: 0.5rem;"></i> Units Management
+            </h2>
+            <p class="text-muted">Manage all your measuring units in one dashboard.</p>
+        </div>
+
+        <div class="card-container">
+            <div class="info-card">
+                <i class="bi bi-database"></i>
+                <h5>Total</h5>
+                <h2>@Model.Count</h2>
+            </div>
+
+            @{
+                var baseUnits = Model.Where(u => u.IsBaseUnit).ToList();
+                var displayBaseUnits = baseUnits.Take(3).ToList();
+            }
+
+            @foreach (var unit in displayBaseUnits)
             {
-                @foreach (var unit in Model)
-                {
+                <div class="info-card">
+                    <i class="bi bi-hash"></i>
+                    <h5>Base Unit</h5>
+                    <h2>@unit.UnitSymbol</h2>
+                </div>
+            }
+
+            @{
+                int requiredSlots = 3 - displayBaseUnits.Count;
+                if (requiredSlots < 0) { requiredSlots = 0; }
+            }
+
+            @for (int i = 0; i < requiredSlots; i++)
+            {
+                <div class="info-card" style="border: 1px dashed #ddd6ce; background: transparent; box-shadow: none;">
+                    <i class="bi bi-plus-circle" style="color: #ddd6ce;"></i>
+                    <h5>Empty</h5>
+                    <h2 style="font-size: 0.9rem; color: #ddd6ce;">---</h2>
+                </div>
+            }
+        </div>
+
+        <!-- Search & Add -->
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control search-box" placeholder="Search by name, symbol, category, or conversion factor...">
+                    <button class="btn search-btn" onclick="filterTable()">
+                        <i class="bi bi-search me-2"></i> Search
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="/Units/Create" class="btn btn-dark rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-plus-circle me-2"></i> Add Unit
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive table-custom">
+            <table class="table table-hover mb-0" id="unitTable">
+                <thead>
                     <tr>
-                        <td><strong>@unit.UnitSymbol</strong></td>
-                        <td>@unit.UnitName</td>
-                        <td><span class="badge bg-secondary">@unit.Category</span></td>
-                        <td>@(unit.IsBaseUnit ? "✅ Yes" : "❌ No")</td>
-                        <td class="text-center">
-                            <a asp-action="Edit" asp-route-id="@unit.Id" class="btn btn-sm btn-warning">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@unit.Id" class="btn btn-sm btn-danger">Delete</a>
-                        </td>
+                        <th class="ps-4">Name</th>
+                        <th>Symbol</th>
+                        <th>Category</th>
+                        <th class="text-center">Base</th>
+                        <th class="text-center">Conversion Factor</th>
+                        <th class="text-center pe-4">Actions</th>
                     </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var safeModalId = $"unitModal_{item.UnitSymbol.Replace(" ", "_").Replace(".", "-")}";
+                            var deleteModalId = $"deleteModal_{item.UnitSymbol.Replace(" ", "_").Replace(".", "-")}";
+
+                            <tr>
+                                <td class="ps-4 fw-normal">@Html.DisplayFor(modelItem => item.UnitName)</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2" style="border-color: #ddd6ce !important;">
+                                        @Html.DisplayFor(modelItem => item.UnitSymbol)
+                                    </span>
+                                </td>
+                                <td style="color: #555;">@Html.DisplayFor(modelItem => item.Category)</td>
+                                <td class="text-center">
+                                    @if (item.IsBaseUnit)
+                                    {
+                                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1.1rem;"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-x-circle-fill" style="color: #bbb; font-size: 1.1rem;"></i>
+                                    }
+                                </td>
+                                <td class="text-center fw-bold">
+                                    @item.ConversionFactor.ToString("0.########")
+                                </td>
+                                <td class="text-center pe-4">
+                                    <button type="button" class="action-btn btn-icon-view"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#@safeModalId"
+                                            title="View Details">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+
+                                    <a href="/Units/Edit/@item.Id" class="action-btn btn-icon-edit" title="Edit Unit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
+                                    <button type="button" class="action-btn btn-icon-delete"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#@deleteModalId"
+                                            title="Delete Unit">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Details Modal -->
+                            <div class="modal fade" id="@safeModalId" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content shadow-lg border-0 rounded-4">
+                                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-info-circle me-2" style="color: #b33c2e;"></i> @item.UnitName
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pb-4 pt-2">
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Unit Name</span><span>@item.UnitName</span></div>
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Symbol</span><span>@item.UnitSymbol</span></div>
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Category</span><span>@item.Category</span></div>
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Is Base Unit</span><span>@(item.IsBaseUnit ? "Yes" : "No")</span></div>
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Conversion Factor</span><span>@item.ConversionFactor</span></div>
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Display Order</span><span>@item.DisplayOrder</span></div>
+                                        </div>
+                                        <div class="modal-footer border-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="@deleteModalId" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content shadow-lg border-0 rounded-4">
+                                        <div class="modal-header bg-danger text-white border-0 rounded-top-4">
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4 text-center">
+                                            <p class="fs-5">Are you sure you want to delete <strong>@item.UnitName</strong> (@item.UnitSymbol)?</p>
+                                            <p class="text-muted small">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer border-0 justify-content-center pb-4">
+                                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+
+                                            <form id="deleteForm_@item.Id" action="/Units/Delete/@item.Id" method="post" style="display:inline;">
+                                                <button type="button" class="btn btn-danger rounded-pill px-4" onclick="submitDelete('@item.Id')">
+                                                    Yes, Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-box-seam d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
+                                No units found. Click "Add Unit" to get started.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function filterTable() {
+        let input = document.getElementById("searchInput");
+        let filter = input.value.toLowerCase();
+        let table = document.getElementById("unitTable");
+        let tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            let td = tr[i].getElementsByTagName("td");
+            let found = false;
+            for (let j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    let txtValue = td[j].textContent || td[j].innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
                 }
             }
-        </tbody>
-    </table>
-</div>
+            tr[i].style.display = found ? "" : "none";
+        }
+    }
+
+    document.getElementById("searchInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") { filterTable(); }
+    });
+
+    function submitDelete(id) {
+        var form = document.getElementById('deleteForm_' + id);
+        if (form) {
+            form.submit();
+        }
+    }
+</script>

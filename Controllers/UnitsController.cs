@@ -44,7 +44,7 @@ namespace PizzaTownDHA.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create(Unit unit)
         {
             if(await unitService.UnitSymbolExistsAsync(unit.UnitSymbol))
@@ -78,7 +78,7 @@ namespace PizzaTownDHA.Controllers
         }
     
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Edit(Guid Id , Unit unit)
         {
             if(Id != unit.Id)
@@ -110,7 +110,7 @@ namespace PizzaTownDHA.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]   
         public async Task<IActionResult> Delete(Guid id)
         {
             try
@@ -131,7 +131,6 @@ namespace PizzaTownDHA.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
-
 
     }
 }
