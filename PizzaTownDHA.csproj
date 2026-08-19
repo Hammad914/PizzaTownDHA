@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\ModelViews\" />
     <Folder Include="Models\DTOs\" />
+    <Folder Include="Models\ModelViews\" />
   </ItemGroup>
 
 </Project>
