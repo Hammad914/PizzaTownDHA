@@ -1,0 +1,492 @@
+﻿@model List<PizzaTownDHA.Models.Entities.Product>
+@{
+    ViewData["Title"] = "Products Management";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+        color: #222222;
+    }
+
+    .page-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .info-card {
+        flex: 0 0 220px;
+        max-width: 220px;
+        border: 1px solid #e5ddd4;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease;
+        padding: 1rem 0.5rem;
+        text-align: center;
+    }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        }
+
+        .info-card .bi {
+            font-size: 1.6rem;
+            color: #777;
+        }
+
+        .info-card .bi-database {
+            color: #b33c2e;
+        }
+
+        .info-card .bi-egg-fried {
+            color: #b33c2e;
+        }
+
+        .info-card h5 {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .info-card h2 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+    .search-box {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+        background: #ffffff;
+        border: 1px solid #ddd6ce;
+        padding: 0.6rem 1rem;
+    }
+
+    .search-btn {
+        border-radius: 0 10px 10px 0;
+        background-color: #b33c2e;
+        color: white;
+        border: 1px solid #b33c2e;
+        padding: 0 1.5rem;
+    }
+
+    .table-custom {
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+        .table-custom thead {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+            .table-custom thead th {
+                font-size: 0.85rem;
+                padding: 1rem 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+        .table-custom tbody td {
+            font-size: 1rem;
+            padding: 1rem 1rem;
+            vertical-align: middle;
+            color: #222;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f9f6f2;
+        }
+
+    .action-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        transition: transform 0.2s ease;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 3px;
+    }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+    .btn-icon-view {
+        background-color: #f0efed;
+        color: #444;
+    }
+
+        .btn-icon-view:hover {
+            background-color: #dcdcdc;
+        }
+
+    .btn-icon-edit {
+        background-color: transparent;
+        color: #b45f06;
+        border: 1px solid #b45f06;
+    }
+
+        .btn-icon-edit:hover {
+            background-color: #b45f06;
+            color: #fff;
+        }
+
+    .btn-icon-delete {
+        background-color: transparent;
+        color: #ba2d0b;
+        border: 1px solid #ba2d0b;
+    }
+
+        .btn-icon-delete:hover {
+            background-color: #ba2d0b;
+            color: #fff;
+        }
+
+    .modal-detail-row {
+        border-bottom: 1px solid #f0eeea;
+        padding: 10px 0;
+    }
+
+        .modal-detail-row span:first-child {
+            color: #777;
+            font-weight: 600;
+        }
+
+        .modal-detail-row span:last-child {
+            font-weight: 500;
+        }
+
+    /* Pagination Styling */
+    .page-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+        .page-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1a1a;">
+                <i class="bi bi-egg-fried" style="color: #b33c2e; margin-right: 0.5rem;"></i> Products Management
+            </h2>
+            <p class="text-muted">Manage all your menu items and recipes.</p>
+        </div>
+
+        <div class="card-container">
+            <div class="info-card">
+                <i class="bi bi-database"></i>
+                <h5>Total Products</h5>
+                <h2>@Model.Count</h2>
+            </div>
+            <div class="info-card" style="border: 1px solid #b33c2e;">
+                <i class="bi bi-egg-fried" style="color: #b33c2e;"></i>
+                <h5>Active Items</h5>
+                <h2 style="color: #b33c2e;">@Model.Where(p => !p.IsDeleted).Count()</h2>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 10px 0 0 10px;">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control search-box" placeholder="Type to search...">
+                    <button class="btn search-btn" onclick="filterTable()">Search</button>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="/Products/Create" class="btn btn-dark rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-plus-circle me-2"></i> Add Product
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive table-custom">
+            <table class="table table-hover mb-0" id="unitTable">
+                <thead>
+                    <tr>
+                        <th class="ps-4 text-center" style="width: 5%;">#</th>
+                        <th class="ps-2">Name</th>
+                        <th class="text-center">Ingredients Used</th>
+                        <th class="text-center pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int counter = 1;
+                        @foreach (var item in Model)
+                        {
+                            var safeModalId = $"productModal_{item.Name.Replace(" ", "_").Replace(".", "-")}";
+                            var deleteModalId = $"deleteModal_{item.Name.Replace(" ", "_").Replace(".", "-")}";
+
+                            <tr class="product-row">
+                                <td class="ps-4 text-center fw-bold">@counter</td>
+                                <td class="ps-2 fw-normal">@Html.DisplayFor(modelItem => item.Name)</td>
+                                <td class="text-center">
+                                    @if (item.ProductIngredients != null && item.ProductIngredients.Count > 0)
+                                    {
+                                        var names = item.ProductIngredients.Select(pi => pi.Ingredient?.Name ?? "Unknown").ToList();
+                                        var totalCount = names.Count;
+                                        var displayText = string.Join(", ", names.Take(3));
+                                        if (totalCount > 3)
+                                        {
+                                            displayText += $" ... (+{totalCount - 3} more)";
+                                        }
+
+                                        <span class="badge bg-light text-dark border rounded-pill px-3 py-2" title="@string.Join(", ", names)">
+                                            @displayText
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic">No ingredients assigned</span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4">
+                                    <button type="button" class="action-btn btn-icon-view"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#@safeModalId" title="View Details">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+                                    <a href="/Products/Edit/@item.Id" class="action-btn btn-icon-edit" title="Edit Product">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="action-btn btn-icon-delete"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#@deleteModalId" title="Delete Product">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Details Modal -->
+                            <div class="modal fade" id="@safeModalId" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content shadow-lg border-0 rounded-4">
+                                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-info-circle me-2" style="color: #b33c2e;"></i> @item.Name
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pb-4 pt-2">
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Name</span><span>@item.Name</span></div>
+
+                                            <div class="modal-detail-row d-flex justify-content-between">
+                                                <span>Ingredients</span>
+                                                <span>
+                                                    @if (item.ProductIngredients != null && item.ProductIngredients.Count > 0)
+                                                    {
+                                                        <ul class="list-unstyled mb-0 text-end">
+                                                            @foreach (var pi in item.ProductIngredients)
+                                                            {
+                                                                <li>
+                                                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 me-1">
+                                                                        @pi.Ingredient?.Name
+                                                                    </span>
+                                                                    <span class="text-muted small">(@pi.QuantityRequired @pi.Ingredient?.Unit?.UnitSymbol)</span>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">No ingredients assigned</span>
+                                                    }
+                                                </span>
+                                            </div>
+
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Created</span><span>@item.CreatedAt.ToString("g")</span></div>
+                                        </div>
+                                        <div class="modal-footer border-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="@deleteModalId" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content shadow-lg border-0 rounded-4">
+                                        <div class="modal-header bg-danger text-white border-0 rounded-top-4">
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4 text-center">
+                                            <p class="fs-5">Are you sure you want to delete <strong>@item.Name</strong>?</p>
+                                            <p class="text-muted small">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer border-0 justify-content-center pb-4">
+                                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                            <form id="deleteForm_@item.Id" action="/Products/Delete/@item.Id" method="post" style="display:inline;">
+                                                <button type="button" class="btn btn-danger rounded-pill px-4" onclick="submitDelete('@item.Id')">
+                                                    Yes, Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-egg-fried d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
+                                No products found. Click "Add Product" to get started.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Pagination Controls -->
+            <div class="d-flex justify-content-center mt-3" id="paginationControls"></div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // --- CONFIGURATION ---
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    let filteredRows = [];
+
+    // --- INITIALIZE ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all rows that are not the empty-state row
+        filteredRows = Array.from(document.querySelectorAll('#tableBody .product-row'));
+        applyPagination();
+    });
+
+    // --- LIVE SEARCH ---
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let searchValue = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#tableBody .product-row');
+
+        filteredRows = Array.from(rows).filter(row => {
+            let text = row.innerText.toLowerCase();
+            return text.includes(searchValue);
+        });
+
+        currentPage = 1;
+        applyPagination();
+    });
+
+    function filterTable() {
+        // Triggers the same logic
+        document.getElementById('searchInput').dispatchEvent(new Event('keyup'));
+    }
+
+    // --- PAGINATION LOGIC ---
+    function applyPagination() {
+        let tableBody = document.getElementById('tableBody');
+        let allRows = document.querySelectorAll('#tableBody .product-row');
+
+        // Hide all rows first
+        allRows.forEach(row => row.style.display = 'none');
+
+        // Calculate pagination indices
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        let paginatedRows = filteredRows.slice(start, end);
+
+        // Show only the paginated rows
+        paginatedRows.forEach(row => {
+            row.style.display = '';
+        });
+
+        // Draw Pagination Buttons
+        let totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+        let container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        // Previous
+        let prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerText = '‹';
+        prevBtn.onclick = function() {
+            if (currentPage > 1) { currentPage--; applyPagination(); }
+        };
+        container.appendChild(prevBtn);
+
+        // Page Numbers
+        for (let i = 1; i <= totalPages; i++) {
+            let btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = function() {
+                currentPage = i;
+                applyPagination();
+            };
+            container.appendChild(btn);
+        }
+
+        // Next
+        let nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerText = '›';
+        nextBtn.onclick = function() {
+            if (currentPage < totalPages) { currentPage++; applyPagination(); }
+        };
+        container.appendChild(nextBtn);
+    }
+
+    // --- DELETE SUBMIT ---
+    function submitDelete(id) {
+        var form = document.getElementById('deleteForm_' + id);
+        if (form) {
+            form.submit();
+        }
+    }
+</script>

@@ -21,7 +21,8 @@ builder.Services.AddControllersWithViews();
 
 // Scopedd FOr Servicees
 builder.Services.AddScoped<IUnitService, UnitService>();
-builder.Services.AddScoped<IIngredientService, IngredientService>(); 
+builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IProductService, ProductService>(); 
 
 var app = builder.Build();
 

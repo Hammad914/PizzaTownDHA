@@ -84,7 +84,7 @@ namespace PizzaTownDHA.Controllers
             return View(ingredient);
         }
 
-       
+
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Edit(Guid Id, [Bind("Id,Name,UnitId,PhysicalStock,MinimumStock")] Ingredient ingredient)
