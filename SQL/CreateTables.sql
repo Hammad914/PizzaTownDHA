@@ -1,8 +1,5 @@
 ﻿USE pizzatowndha;
 
--- =============================================
--- CREATE UNITS TABLE
--- =============================================
 CREATE TABLE Units (
     Id VARCHAR(36) PRIMARY KEY NOT NULL,
     UnitSymbol VARCHAR(20) NOT NULL,
@@ -16,4 +13,35 @@ CREATE TABLE Units (
     UpdatedBy VARCHAR(50) DEFAULT NULL,
     UpdatedAt DATETIME DEFAULT NULL,
     IsDeleted TINYINT DEFAULT 0
+);
+
+
+CREATE TABLE ingredients (
+    Id VARCHAR(36) NOT NULL PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL UNIQUE,
+    UnitId VARCHAR(36) NOT NULL,
+    PhysicalStock DECIMAL(18, 4) NOT NULL DEFAULT 0.0000,
+    MinimumStock DECIMAL(18, 4) NOT NULL DEFAULT 0.0000,
+    IsDeleted TINYINT(1) NOT NULL DEFAULT 0,
+    CreatedBy VARCHAR(100) NOT NULL DEFAULT 'System',
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedBy VARCHAR(100) NULL,
+    UpdatedAt DATETIME NULL
+);
+
+CREATE TABLE products (
+    Id VARCHAR(36) NOT NULL PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL UNIQUE,
+    IsDeleted BOOLEAN NOT NULL DEFAULT FALSE,
+    CreatedBy VARCHAR(100) NOT NULL DEFAULT 'System',
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedBy VARCHAR(100) NULL,
+    UpdatedAt DATETIME NULL
+);
+
+CREATE TABLE product_ingredients (
+    Id VARCHAR(36) NOT NULL PRIMARY KEY,
+    ProductId VARCHAR(36) NOT NULL,
+    IngredientId VARCHAR(36) NOT NULL,
+    QuantityRequired DECIMAL(18, 4) NOT NULL DEFAULT 1.0000
 );

@@ -12,17 +12,16 @@ if (string.IsNullOrEmpty(connectionString))
 {
     throw new Exception("Connection string 'Pizza Town DHA' not found in appsettings.json");
 }
-// ✅ Debug: Print available connection strings
-Console.WriteLine($"Connection string: '{connectionString}'");
-Console.WriteLine($"Is null or empty: {string.IsNullOrEmpty(connectionString)}");
+
 
 builder.Services.AddDbContext<PizzaTownContext>(options => options.UseMySQL(connectionString)
 );
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Add scoped for services here
+// Scopedd FOr Servicees
 builder.Services.AddScoped<IUnitService, UnitService>();
+builder.Services.AddScoped<IIngredientService, IngredientService>(); 
 
 var app = builder.Build();
 

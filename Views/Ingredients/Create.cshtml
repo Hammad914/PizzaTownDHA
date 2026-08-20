@@ -1,0 +1,90 @@
+﻿@model PizzaTownDHA.Models.Entities.Ingredient
+@{
+    ViewData["Title"] = "Create Ingredient";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+    }
+
+    .page-wrapper {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* 🛠️ FIX: Allows dropdown to overflow downwards without being cut off */
+    .card {
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+    .card-body {
+        overflow: visible !important;
+    }
+
+    .form-control, select {
+        position: relative;
+        z-index: 2;
+    }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-danger text-white border-0 py-3">
+                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i> Create Ingredient</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label fw-bold">Name</label>
+                            <!-- 🔥 EXPLICIT name="Name" TO ENSURE BINDING -->
+                            <input asp-for="Name" name="Name" class="form-control" placeholder="e.g. Flour" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="UnitId" class="form-label fw-bold">Unit</label>
+                            @Html.DropDownListFor(
+                            model => model.UnitId,
+                                                        ViewData["UnitSelectList"] as SelectList,
+                                                                "-- Select Unit --",
+                                                        new { @class = "form-control" }
+                                                        )
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="PhysicalStock" class="form-label fw-bold">Physical Stock</label>
+                            <!-- 🔥 EXPLICIT name="PhysicalStock" TO ENSURE BINDING -->
+                            <input asp-for="PhysicalStock" name="PhysicalStock" class="form-control" type="number" step="any" placeholder="e.g. 25.5" />
+                            <span asp-validation-for="PhysicalStock" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="MinimumStock" class="form-label fw-bold">Minimum Stock</label>
+                            <!-- 🔥 EXPLICIT name="MinimumStock" TO ENSURE BINDING -->
+                            <input asp-for="MinimumStock" name="MinimumStock" class="form-control" type="number" step="any" placeholder="e.g. 5.0" />
+                            <span asp-validation-for="MinimumStock" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Create Ingredient</button>
+                        <a href="/Ingredients" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
