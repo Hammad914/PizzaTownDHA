@@ -15,35 +15,39 @@ namespace PizzaTownDHA.Services
 
         public async Task<List<Unit>> GetAllAsync()
         {
-            var response = await db.Units.Where(u => !u.IsDeleted).OrderBy(u => u.DisplayOrder).ToListAsync();
+            var response = await db.Units
+                .Where(u => !u.IsDeleted)
+                .OrderBy(u => u.DisplayOrder)
+                .ToListAsync();
             return response;
         }
+
         public async Task<Unit?> GetByIdAsync(Guid id)
         {
-            var response = await db.Units.FirstOrDefaultAsync(e => e.Id == id);
-            return response; 
+            return await db.Units.FirstOrDefaultAsync(e => e.Id == id);
         }
+
         public async Task<Unit> RegisterUnitAsync(Unit unit)
         {
-            if(unit.Id == Guid.Empty)
-            unit.Id = Guid.NewGuid();
+            if (unit.Id == Guid.Empty)
+                unit.Id = Guid.NewGuid();
 
             unit.CreatedAt = DateTime.UtcNow;
             unit.IsDeleted = false;
             unit.CreatedBy = "System";
             unit.UpdatedBy = null;
 
-            var exits = await db.Units.AnyAsync(u => u.UnitSymbol == unit.UnitSymbol && !u.IsDeleted);
-
-            if (exits)
-                throw new InvalidOperationException($"Unit Symbol '${unit.UnitSymbol}' already exists");
-
+            // Base Unit Logic
             if (unit.IsBaseUnit)
             {
-                var existingBase = await db.Units.FirstOrDefaultAsync(u => u.Category == unit.Category && u.IsBaseUnit && !u.IsDeleted);
+                var existingBase = await db.Units
+                    .FirstOrDefaultAsync(u => u.Category == unit.Category && u.IsBaseUnit && !u.IsDeleted);
 
                 if (existingBase != null)
-                    throw new InvalidOperationException($"Base Unit Already Exists for category '${unit.Category}': '${existingBase.UnitSymbol}'");
+                {
+                    existingBase.IsDeleted = true;
+                    db.Units.Update(existingBase);
+                }
             }
 
             db.Units.Add(unit);
@@ -51,55 +55,102 @@ namespace PizzaTownDHA.Services
             return unit;
         }
 
-     public async Task<Unit> UpdateUnitAsync(Unit unit)
+        public async Task<Unit> UpdateUnitAsync(Unit unit)
         {
-          // Checks the Unit exists or not. If does then update possible otherwise show error unit doesn't exisits
-            var exisitingUnit = await db.Units.FirstOrDefaultAsync(u => u.Id == unit.Id && !u.IsDeleted);
+            var existingUnit = await db.Units
+                .FirstOrDefaultAsync(u => u.Id == unit.Id && !u.IsDeleted);
 
-            if (exisitingUnit == null)
-                throw new InvalidOperationException($"Unit With Id '{unit.Id}' Not Found");
+            if (existingUnit == null)
+                throw new InvalidOperationException("Unit not found.");
 
-            // Checking the duplicate symbol. This is to check that when updating we do not add the unitsymbol that already some other unit has.
-            var duplicateSymbol = await db.Units.AnyAsync(u => u.UnitSymbol == unit.UnitSymbol && !u.IsDeleted && u.Id != unit.Id);
+            // Strict rule: Only 1 Base Unit per Category
+            if (unit.IsBaseUnit)
+            {
+                var existingBase = await db.Units.FirstOrDefaultAsync(u =>
+                    u.Category == unit.Category &&
+                    u.IsBaseUnit &&
+                    !u.IsDeleted &&
+                    u.Id != unit.Id);
 
-            if (duplicateSymbol)
-                throw new InvalidOperationException($"UnitSymbol {unit.UnitSymbol} already exisits");
+                if (existingBase != null)
+                {
+                    throw new InvalidOperationException(
+                        $"Each category can only have ONE base unit. '{existingBase.UnitSymbol}' is already the base unit for the '{unit.Category}' category."
+                    );
+                }
+            }
 
-            exisitingUnit.UnitSymbol = unit.UnitSymbol;
-            exisitingUnit.UnitName = unit.UnitName;
-            exisitingUnit.Category = unit.Category;
-            exisitingUnit.ConversionFactor = unit.ConversionFactor;
-            exisitingUnit.IsBaseUnit = unit.IsBaseUnit;
-            exisitingUnit.DisplayOrder = unit.DisplayOrder;
+            // 🆕 Update: Strict rule: Display Order must be unique
+            var duplicateOrder = await db.Units.AnyAsync(u =>
+                u.DisplayOrder == unit.DisplayOrder &&
+                !u.IsDeleted &&
+                u.Id != unit.Id);
 
-            exisitingUnit.UpdatedAt = DateTime.UtcNow;
-            exisitingUnit.UpdatedBy = unit.UpdatedBy ?? "System";
+            if (duplicateOrder)
+            {
+                throw new InvalidOperationException(
+                    $"Display Order '{unit.DisplayOrder}' is already taken. Please choose a different number."
+                );
+            }
 
-            db.Units.Update(exisitingUnit);
+            // Update values
+            existingUnit.UnitSymbol = unit.UnitSymbol;
+            existingUnit.UnitName = unit.UnitName;
+            existingUnit.Category = unit.Category;
+            existingUnit.ConversionFactor = unit.ConversionFactor;
+            existingUnit.IsBaseUnit = unit.IsBaseUnit;
+            existingUnit.DisplayOrder = unit.DisplayOrder;
+
+            existingUnit.UpdatedAt = DateTime.UtcNow;
+            existingUnit.UpdatedBy = unit.UpdatedBy ?? "System";
+
+            db.Units.Update(existingUnit);
             await db.SaveChangesAsync();
-            return exisitingUnit;
+            return existingUnit;
         }
 
-        public async Task<bool> UnitSymbolExistsAsync(String unitSymbol)
+        // --- SYMBOL CHECKS ---
+        public async Task<bool> UnitSymbolExistsAsync(string unitSymbol)
         {
             return await db.Units.AnyAsync(u => u.UnitSymbol == unitSymbol);
         }
 
-        public async Task<bool> UnitSymbolExistsAsync(String unitSymbol, Guid currentId)
+        public async Task<bool> UnitSymbolExistsAsync(string unitSymbol, Guid currentId)
         {
             return await db.Units.AnyAsync(u => u.UnitSymbol == unitSymbol && u.Id != currentId);
         }
 
+        // --- NAME CHECKS ---
+        public async Task<bool> UnitNameExistsAsync(string unitName)
+        {
+            return await db.Units.AnyAsync(u => u.UnitName == unitName);
+        }
+
+        public async Task<bool> UnitNameExistsAsync(string unitName, Guid currentId)
+        {
+            return await db.Units.AnyAsync(u => u.UnitName == unitName && u.Id != currentId);
+        }
+
+        // 🆕 DISPLAY ORDER CHECKS
+        public async Task<bool> DisplayOrderExistsAsync(int displayOrder)
+        {
+            return await db.Units.AnyAsync(u => u.DisplayOrder == displayOrder);
+        }
+
+        public async Task<bool> DisplayOrderExistsAsync(int displayOrder, Guid currentId)
+        {
+            return await db.Units.AnyAsync(u => u.DisplayOrder == displayOrder && u.Id != currentId);
+        }
+
         public async Task<bool> DeleteUnitAsync(Guid id)
         {
-            var unit = await db.Units.FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
+            var unit = await db.Units
+                .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted);
 
             if (unit == null)
                 return false;
-            
-            // soft delete
-            unit.IsDeleted = true;
 
+            unit.IsDeleted = true;
             await db.SaveChangesAsync();
             return true;
         }

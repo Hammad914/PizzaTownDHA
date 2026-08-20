@@ -25,43 +25,49 @@
                 <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i> Create New Unit</h4>
             </div>
             <div class="card-body p-4">
+                <!-- Form with Explicit Names -->
                 <form asp-action="Create" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="UnitName" class="form-label fw-bold">Unit Name</label>
-                            <input asp-for="UnitName" class="form-control" placeholder="e.g. Kilogram" />
+                            <!-- FORCED NAME ATTRIBUTE -->
+                            <input asp-for="UnitName" name="@Html.NameFor(m => m.UnitName)" class="form-control" placeholder="e.g. Kilogram" />
                             <span asp-validation-for="UnitName" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="UnitSymbol" class="form-label fw-bold">Symbol</label>
-                            <input asp-for="UnitSymbol" class="form-control" placeholder="e.g. kg" />
+                            <!-- FORCED NAME ATTRIBUTE -->
+                            <input asp-for="UnitSymbol" name="@Html.NameFor(m => m.UnitSymbol)" class="form-control" placeholder="e.g. kg" />
                             <span asp-validation-for="UnitSymbol" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="Category" class="form-label fw-bold">Category</label>
-                            <input asp-for="Category" class="form-control" placeholder="e.g. Weight, Volume" />
+                            <!-- FORCED NAME ATTRIBUTE -->
+                            <input asp-for="Category" name="@Html.NameFor(m => m.Category)" class="form-control" placeholder="e.g. Weight, Volume" />
                             <span asp-validation-for="Category" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="ConversionFactor" class="form-label fw-bold">Conversion Factor</label>
-                            <input asp-for="ConversionFactor" class="form-control" type="number" step="any" placeholder="e.g. 1.0" />
+                            <!-- FORCED NAME ATTRIBUTE -->
+                            <input asp-for="ConversionFactor" name="@Html.NameFor(m => m.ConversionFactor)" class="form-control" type="number" step="any" placeholder="e.g. 1.0" />
                             <span asp-validation-for="ConversionFactor" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="DisplayOrder" class="form-label fw-bold">Display Order</label>
-                            <input asp-for="DisplayOrder" class="form-control" type="number" placeholder="e.g. 1" />
+                            <!-- FORCED NAME ATTRIBUTE -->
+                            <input asp-for="DisplayOrder" name="@Html.NameFor(m => m.DisplayOrder)" class="form-control" type="number" placeholder="e.g. 1" />
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Is Base Unit?</label>
                             <div class="form-check form-switch mt-2">
-                                <input asp-for="IsBaseUnit" class="form-check-input" type="checkbox" id="isBaseUnit" />
+                                <input asp-for="IsBaseUnit" name="@Html.NameFor(m => m.IsBaseUnit)" class="form-check-input" type="checkbox" id="isBaseUnit" />
                                 <label class="form-check-label" for="isBaseUnit">Yes</label>
                             </div>
                         </div>

@@ -180,11 +180,70 @@
         .modal-detail-row span:last-child {
             font-weight: 500;
         }
+
+    /* Toast Notification Styles */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .toast-item {
+        min-width: 300px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: white;
+        animation: slideInRight 0.4s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .toast-success {
+        background-color: #28a745;
+    }
+
+    .toast-error {
+        background-color: #dc3545;
+    }
+    /* Clean transparent Close 'X' Button */
+    .toast-item .close-toast {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.8);
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+        margin-left: 15px;
+        padding: 0;
+        transition: 0.2s ease;
+    }
+
+        .toast-item .close-toast:hover {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
 </style>
 
 <div class="container-fluid py-5">
     <div class="page-wrapper">
-
         <div class="text-center mb-4">
             <h2 class="fw-bold" style="color: #1a1a1a;">
                 <i class="bi bi-boxes" style="color: #b33c2e; margin-right: 0.5rem;"></i> Units Management
@@ -198,12 +257,10 @@
                 <h5>Total</h5>
                 <h2>@Model.Count</h2>
             </div>
-
             @{
                 var baseUnits = Model.Where(u => u.IsBaseUnit).ToList();
                 var displayBaseUnits = baseUnits.Take(3).ToList();
             }
-
             @foreach (var unit in displayBaseUnits)
             {
                 <div class="info-card">
@@ -212,12 +269,10 @@
                     <h2>@unit.UnitSymbol</h2>
                 </div>
             }
-
             @{
                 int requiredSlots = 3 - displayBaseUnits.Count;
                 if (requiredSlots < 0) { requiredSlots = 0; }
             }
-
             @for (int i = 0; i < requiredSlots; i++)
             {
                 <div class="info-card" style="border: 1px dashed #ddd6ce; background: transparent; box-shadow: none;">
@@ -228,17 +283,19 @@
             }
         </div>
 
-        <!-- Search & Add -->
+        <!-- Search Bar & Add Button -->
         <div class="row align-items-center mb-4">
             <div class="col-md-8">
                 <div class="input-group">
-                    <input type="text" id="searchInput" class="form-control search-box" placeholder="Search by name, symbol, category, or conversion factor...">
-                    <button class="btn search-btn" onclick="filterTable()">
-                        <i class="bi bi-search me-2"></i> Search
-                    </button>
+                    <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 10px 0 0 10px;">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control search-box" placeholder="Type to search...">
+                    <button class="btn search-btn" onclick="filterTable()">Search</button>
                 </div>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <!-- Add Unit Button Restored -->
                 <a href="/Units/Create" class="btn btn-dark rounded-pill px-4 py-2 shadow-sm">
                     <i class="bi bi-plus-circle me-2"></i> Add Unit
                 </a>
@@ -249,7 +306,8 @@
             <table class="table table-hover mb-0" id="unitTable">
                 <thead>
                     <tr>
-                        <th class="ps-4">Name</th>
+                        <th class="ps-4 text-center" style="width: 5%;">#</th> <!-- New Serial Column -->
+                        <th class="ps-2">Name</th>
                         <th>Symbol</th>
                         <th>Category</th>
                         <th class="text-center">Base</th>
@@ -260,13 +318,15 @@
                 <tbody>
                     @if (Model != null && Model.Count > 0)
                     {
+                        int counter = 1; // Start the counter
                         @foreach (var item in Model)
                         {
                             var safeModalId = $"unitModal_{item.UnitSymbol.Replace(" ", "_").Replace(".", "-")}";
                             var deleteModalId = $"deleteModal_{item.UnitSymbol.Replace(" ", "_").Replace(".", "-")}";
 
                             <tr>
-                                <td class="ps-4 fw-normal">@Html.DisplayFor(modelItem => item.UnitName)</td>
+                                <td class="ps-4 text-center fw-bold">@counter</td> <!-- Display Serial Number -->
+                                <td class="ps-2 fw-normal">@Html.DisplayFor(modelItem => item.UnitName)</td>
                                 <td>
                                     <span class="badge bg-light text-dark border rounded-pill px-3 py-2" style="border-color: #ddd6ce !important;">
                                         @Html.DisplayFor(modelItem => item.UnitSymbol)
@@ -289,19 +349,15 @@
                                 <td class="text-center pe-4">
                                     <button type="button" class="action-btn btn-icon-view"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#@safeModalId"
-                                            title="View Details">
+                                            data-bs-target="#@safeModalId" title="View Details">
                                         <i class="bi bi-eye-fill"></i>
                                     </button>
-
                                     <a href="/Units/Edit/@item.Id" class="action-btn btn-icon-edit" title="Edit Unit">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-
                                     <button type="button" class="action-btn btn-icon-delete"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#@deleteModalId"
-                                            title="Delete Unit">
+                                            data-bs-target="#@deleteModalId" title="Delete Unit">
                                         <i class="bi bi-trash3"></i>
                                     </button>
                                 </td>
@@ -348,7 +404,6 @@
                                         </div>
                                         <div class="modal-footer border-0 justify-content-center pb-4">
                                             <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-
                                             <form id="deleteForm_@item.Id" action="/Units/Delete/@item.Id" method="post" style="display:inline;">
                                                 <button type="button" class="btn btn-danger rounded-pill px-4" onclick="submitDelete('@item.Id')">
                                                     Yes, Delete
@@ -358,12 +413,14 @@
                                     </div>
                                 </div>
                             </div>
+
+                            counter++; // Increment the counter for the next row
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="8" class="text-center py-5 text-muted">
                                 <i class="bi bi-box-seam d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
                                 No units found. Click "Add Unit" to get started.
                             </td>
@@ -375,39 +432,85 @@
     </div>
 </div>
 
+<!-- Hidden fields for Toasts -->
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    function filterTable() {
-        let input = document.getElementById("searchInput");
-        let filter = input.value.toLowerCase();
-        let table = document.getElementById("unitTable");
-        let tr = table.getElementsByTagName("tr");
+    // 🔥 LIVE SEARCH (Filters as you type, no page reload)
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let searchValue = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#unitTable tbody tr');
 
-        for (let i = 1; i < tr.length; i++) {
-            let td = tr[i].getElementsByTagName("td");
-            let found = false;
-            for (let j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    let txtValue = td[j].textContent || td[j].innerText;
-                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            tr[i].style.display = found ? "" : "none";
-        }
-    }
-
-    document.getElementById("searchInput").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") { filterTable(); }
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(searchValue) ? '' : 'none';
+        });
     });
 
+    // Keep the search button as a fallback (optional)
+    function filterTable() {
+        let searchValue = document.getElementById('searchInput').value.toLowerCase();
+        let rows = document.querySelectorAll('#unitTable tbody tr');
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(searchValue) ? '' : 'none';
+        });
+    }
+
+    // Force submit delete
     function submitDelete(id) {
         var form = document.getElementById('deleteForm_' + id);
         if (form) {
             form.submit();
         }
+    }
+
+    // 🍕 TOAST NOTIFICATION LOGIC (Clean Close 'X')
+    document.addEventListener('DOMContentLoaded', function() {
+        const successMsg = document.getElementById('tempDataSuccess')?.value;
+        const errorMsg = document.getElementById('tempDataError')?.value;
+
+        if (successMsg) showNotification(successMsg, 'success');
+        if (errorMsg) showNotification(errorMsg, 'error');
+    });
+
+    function showNotification(message, type) {
+        const container = document.getElementById('toastContainer');
+        if (!container) {
+            const newContainer = document.createElement('div');
+            newContainer.id = 'toastContainer';
+            newContainer.className = 'toast-container';
+            document.body.appendChild(newContainer);
+        }
+
+        const finalContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-item toast-${type}`;
+
+        let icon = 'bi-check-circle-fill';
+        if (type === 'error') icon = 'bi-exclamation-triangle-fill';
+
+        toast.innerHTML = `
+            <div>
+                <i class="bi ${icon} me-2"></i>
+                <span>${message}</span>
+            </div>
+            <!-- CLEAN, TRANSPARENT CLOSE BUTTON -->
+            <button class="close-toast" onclick="this.parentElement.remove()">×</button>
+        `;
+
+        finalContainer.appendChild(toast);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 5000);
     }
 </script>

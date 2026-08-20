@@ -13,7 +13,10 @@ namespace PizzaTownDHA.Interfaces
         Task<bool> UnitSymbolExistsAsync(string unitSymbol);
         Task<bool> UnitSymbolExistsAsync(string unitSymbol, Guid currentId);
 
-        //Task<bool> CanDeleteAsync(Guid id);
+        Task<bool> UnitNameExistsAsync(string unitName);
+        Task<bool> UnitNameExistsAsync(string unitName, Guid currentId);
 
+        Task<bool> DisplayOrderExistsAsync(int displayOrder);
+        Task<bool> DisplayOrderExistsAsync(int displayOrder, Guid currentId);
     }
 }
