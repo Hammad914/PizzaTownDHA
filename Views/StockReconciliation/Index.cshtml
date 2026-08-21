@@ -1,0 +1,309 @@
+﻿@model List<PizzaTownDHA.Controllers.StockReconciliationRow>
+@{
+    ViewData["Title"] = "Stock Reconciliation";
+    var businessDate = (DateTime)ViewBag.BusinessDate;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+        color: #222222;
+    }
+
+    .page-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .info-card {
+        flex: 0 0 220px;
+        max-width: 220px;
+        border: 1px solid #e5ddd4;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease;
+        padding: 1rem 0.5rem;
+        text-align: center;
+    }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        }
+
+        .info-card .bi {
+            font-size: 1.6rem;
+            color: #777;
+        }
+
+        .info-card .bi-clipboard-check {
+            color: #b33c2e;
+        }
+
+        .info-card h5 {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .info-card h2 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+    .search-box {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+        background: #ffffff;
+        border: 1px solid #ddd6ce;
+        padding: 0.6rem 1rem;
+    }
+
+    .search-btn {
+        border-radius: 0 10px 10px 0;
+        background-color: #b33c2e;
+        color: white;
+        border: 1px solid #b33c2e;
+        padding: 0 1.5rem;
+    }
+
+    .table-custom {
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+        .table-custom thead {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+            .table-custom thead th {
+                font-size: 0.85rem;
+                padding: 1rem 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+        .table-custom tbody td {
+            font-size: 1rem;
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+            color: #222;
+        }
+
+    /* Larger, professional buttons */
+    .btn-lg-nav {
+        padding: 10px 24px;
+        font-size: 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .page-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+        .page-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1a1a;">
+                <i class="bi bi-clipboard-check" style="color: #b33c2e; margin-right: 0.5rem;"></i> Stock Reconciliation
+            </h2>
+            <p class="text-muted">End-of-day stock count</p>
+        </div>
+
+        <div class="card-container">
+            <div class="info-card">
+                <i class="bi bi-database"></i>
+                <h5>Total Ingredients</h5>
+                <h2>@Model.Count</h2>
+            </div>
+            <div class="info-card" style="border: 1px solid #dc3545;">
+                <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545;"></i>
+                <h5>Needs Attention</h5>
+                <h2 style="color: #dc3545;">@Model.Count(x => x.Tolerance < 100)</h2>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <a href="/StockReconciliation?date=@businessDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-lg-nav">Previous Day</a>
+                <a href="/StockReconciliation?date=@businessDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-lg-nav">Next Day</a>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" id="datePicker" value="@businessDate.ToString("yyyy-MM-dd")" class="form-control form-control-lg" style="width: 180px;" />
+                <a href="#" id="goToDate" class="btn btn-dark btn-lg-nav">Go</a>
+                <a href="/StockReconciliation/History?date=@businessDate.ToString("yyyy-MM-dd")" class="btn btn-danger btn-lg-nav">View History</a>
+            </div>
+        </div>
+
+        <form id="bulkUpdateForm" action="/StockReconciliation/BulkUpdate" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="businessDate" value="@businessDate.ToString("yyyy-MM-dd")" />
+
+            <div class="row align-items-center mb-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 10px 0 0 10px;">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control search-box" placeholder="Search ingredients...">
+                        <button class="btn search-btn" onclick="filterTable()">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button type="submit" class="btn btn-danger btn-lg-nav rounded-pill px-4">Update Stock</button>
+                </div>
+            </div>
+
+            <div class="table-responsive table-custom">
+                <table class="table table-hover mb-0" id="unitTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 5%;">#</th>
+                            <th class="ps-2">Ingredient</th>
+                            <th>Unit</th>
+                            <th class="text-center">Opening Stock</th>
+                            <th class="text-center">Tolerance</th>
+                            <th class="text-center">Actual Closing (Input)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        @for (int i = 0; i < Model.Count; i++)
+                        {
+                            var item = Model[i];
+                            <tr class="data-row">
+                                <td class="text-center fw-bold">@(i + 1)</td>
+                                <td class="ps-2 fw-bold">@item.IngredientName</td>
+                                <td>@item.UnitSymbol</td>
+                                <td class="text-center">@item.OpeningStock.ToString("0.##")</td>
+                                <td class="text-center">@item.Tolerance.ToString("0.##")%</td>
+                                <td class="text-center">
+                                    <input type="hidden" name="ingredientIds" value="@item.IngredientId" />
+                                    <input type="number" step="any" class="form-control form-control-sm" name="actualClosingStocks" value="@item.ActualClosingStock" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-center mt-3" id="paginationControls"></div>
+        </form>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const rowsPerPage = 15;
+    let currentPage = 1;
+    let allRows = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
+        applyPagination();
+    });
+
+    document.getElementById('goToDate').addEventListener('click', function(e) {
+        e.preventDefault();
+        let selectedDate = document.getElementById('datePicker').value;
+        if (selectedDate) {
+            window.location.href = '/StockReconciliation?date=' + selectedDate;
+        }
+    });
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let searchValue = this.value.toLowerCase();
+        let filteredRows = allRows.filter(row => {
+            let text = row.innerText.toLowerCase();
+            return text.includes(searchValue);
+        });
+        currentPage = 1;
+        applyPagination(filteredRows);
+    });
+
+    function filterTable() {
+        document.getElementById('searchInput').dispatchEvent(new Event('keyup'));
+    }
+
+    function applyPagination(rows = allRows) {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        let paginatedRows = rows.slice(start, end);
+
+        paginatedRows.forEach(row => {
+            tableBody.appendChild(row);
+        });
+
+        let totalPages = Math.ceil(rows.length / rowsPerPage);
+        let container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            let btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = function() { currentPage = i; applyPagination(rows); };
+            container.appendChild(btn);
+        }
+    }
+
+    document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        fetch('/StockReconciliation/BulkUpdate', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>

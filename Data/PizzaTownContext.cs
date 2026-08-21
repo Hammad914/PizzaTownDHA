@@ -94,7 +94,25 @@ namespace PizzaTownDHA.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-        }
+            modelBuilder.Entity<StockAudit>(entity =>
+            {
+                entity.ToTable("stock_audits"); 
 
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.IngredientId);
+                entity.Property(e => e.OpeningStock);
+                entity.Property(e => e.ActualClosingStock);
+                entity.Property(e => e.AuditDate);
+                entity.Property(e => e.IsDeleted);
+                entity.Property(e => e.CreatedBy);
+                entity.Property(e => e.CreatedAt);
+                entity.Property(e => e.UpdatedAt);
+
+                entity.HasOne(s => s.Ingredient)
+                    .WithMany()
+                    .HasForeignKey(s => s.IngredientId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
     }
 }

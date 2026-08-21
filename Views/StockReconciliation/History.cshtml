@@ -1,0 +1,186 @@
+﻿@model List<PizzaTownDHA.Models.Entities.StockAudit>
+@{
+    ViewData["Title"] = "Stock History";
+    var businessDate = (DateTime)ViewBag.BusinessDate;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+        color: #222222;
+    }
+
+    .page-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .table-custom {
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+        .table-custom thead {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+            .table-custom thead th {
+                font-size: 0.85rem;
+                padding: 1rem 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+        .table-custom tbody td {
+            font-size: 1rem;
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+            color: #222;
+        }
+
+    /* Larger, professional buttons */
+    .btn-lg-nav {
+        padding: 10px 24px;
+        font-size: 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .page-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+        .page-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1a1a;">
+                <i class="bi bi-clock-history" style="color: #b33c2e; margin-right: 0.5rem;"></i> Stock History
+            </h2>
+            <p class="text-muted">Audit history for <strong>@businessDate.ToString("yyyy-MM-dd")</strong></p>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a href="/StockReconciliation/History?date=@businessDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-lg-nav">Previous Day</a>
+                <a href="/StockReconciliation/History?date=@businessDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-lg-nav">Next Day</a>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" id="datePicker" value="@businessDate.ToString("yyyy-MM-dd")" class="form-control form-control-lg" style="width: 180px;" />
+                <a href="#" id="goToDate" class="btn btn-dark btn-lg-nav">Go</a>
+                <a href="/StockReconciliation" class="btn btn-danger btn-lg-nav">Back to Stock Count</a>
+            </div>
+        </div>
+
+        <div class="table-responsive table-custom">
+            <table class="table table-hover mb-0" id="historyTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 5%;">#</th>
+                        <th class="ps-2">Ingredient</th>
+                        <th class="text-center">Opening</th>
+                        <th class="text-center">Actual Closing</th>
+                        <th class="text-center">Audit Date</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int serial = 1;
+                        @foreach (var item in Model)
+                        {
+                            <tr class="data-row">
+                                <td class="text-center fw-bold">@serial</td>
+                                <td class="ps-2 fw-bold">@item.Ingredient?.Name</td>
+                                <td class="text-center">@item.OpeningStock.ToString("0.##")</td>
+                                <td class="text-center">@item.ActualClosingStock.ToString("0.##")</td>
+                                <td class="text-center">@item.AuditDate.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                            serial++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-clock-history d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
+                                No stock audits found for this day.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-center mt-3" id="paginationControls"></div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const rowsPerPage = 15;
+    let currentPage = 1;
+    let allRows = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
+        applyPagination();
+    });
+
+    document.getElementById('goToDate').addEventListener('click', function(e) {
+        e.preventDefault();
+        let selectedDate = document.getElementById('datePicker').value;
+        if (selectedDate) {
+            window.location.href = '/StockReconciliation/History?date=' + selectedDate;
+        }
+    });
+
+    function applyPagination() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        let paginatedRows = allRows.slice(start, end);
+
+        paginatedRows.forEach(row => {
+            tableBody.appendChild(row);
+        });
+
+        let totalPages = Math.ceil(allRows.length / rowsPerPage);
+        let container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            let btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = function() { currentPage = i; applyPagination(); };
+            container.appendChild(btn);
+        }
+    }
+</script>
