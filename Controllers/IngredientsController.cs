@@ -26,6 +26,7 @@ namespace PizzaTownDHA.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
+
             var units = await unitService.GetAllAsync();
             ViewData["UnitSelectList"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(units, "Id", "UnitSymbol");
             return View();
@@ -33,8 +34,9 @@ namespace PizzaTownDHA.Controllers
 
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,UnitId,PhysicalStock,MinimumStock")] Ingredient ingredient)
+        public async Task<IActionResult> Create([Bind("Name,UnitId,MinimumStock,Tolerance")] Ingredient ingredient)
         {
+            // 1. Check for Duplicate Name
             if (!string.IsNullOrWhiteSpace(ingredient.Name))
             {
                 if (await ingredientService.IngredientNameExistsAsync(ingredient.Name))
@@ -42,6 +44,13 @@ namespace PizzaTownDHA.Controllers
                     TempData["Error"] = "An ingredient with this name already exists.";
                     return RedirectToAction(nameof(Index));
                 }
+            }
+
+            // 2. Check Tolerance > 75
+            if (ingredient.Tolerance > 75)
+            {
+                TempData["Error"] = "Tolerance cannot be more than 75%. Please enter a value between 0 and 75.";
+                return RedirectToAction(nameof(Index));
             }
 
             if (ModelState.IsValid)
@@ -68,7 +77,6 @@ namespace PizzaTownDHA.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -77,21 +85,18 @@ namespace PizzaTownDHA.Controllers
                 return NotFound();
 
             var units = await unitService.GetAllAsync();
-
-            // This line is what pre-selects the Unit in the dropdown
             ViewData["UnitSelectList"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(units, "Id", "UnitSymbol", ingredient.UnitId);
-
             return View(ingredient);
         }
 
-
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Edit(Guid Id, [Bind("Id,Name,UnitId,PhysicalStock,MinimumStock")] Ingredient ingredient)
+        public async Task<IActionResult> Edit(Guid Id, [Bind("Id,Name,UnitId,MinimumStock,Tolerance")] Ingredient ingredient)
         {
             if (Id != ingredient.Id)
                 return NotFound();
 
+            // 1. Check for Duplicate Name (excluding itself)
             if (!string.IsNullOrWhiteSpace(ingredient.Name))
             {
                 if (await ingredientService.IngredientNameExistsAsync(ingredient.Name, ingredient.Id))
@@ -99,6 +104,13 @@ namespace PizzaTownDHA.Controllers
                     TempData["Error"] = "An ingredient with this name already exists.";
                     return RedirectToAction(nameof(Index));
                 }
+            }
+
+            // 2. Check Tolerance > 75
+            if (ingredient.Tolerance > 75)
+            {
+                TempData["Error"] = "Tolerance cannot be more than 75%. Please enter a value between 0 and 75.";
+                return RedirectToAction(nameof(Index));
             }
 
             if (ModelState.IsValid)

@@ -34,6 +34,12 @@ namespace PizzaTownDHA.Services
             if (ingredient.Id == Guid.Empty)
                 ingredient.Id = Guid.NewGuid();
 
+            // 🚨 VALIDATION: Tolerance cannot exceed 75%
+            if (ingredient.Tolerance > 75)
+            {
+                throw new InvalidOperationException("Tolerance cannot be more than 75%. Please enter a value between 0 and 75.");
+            }
+
             ingredient.CreatedAt = DateTime.UtcNow;
             ingredient.IsDeleted = false;
             ingredient.CreatedBy = "System";
@@ -52,10 +58,16 @@ namespace PizzaTownDHA.Services
             if (existing == null)
                 throw new InvalidOperationException("Ingredient not found.");
 
+            // 🚨 VALIDATION: Tolerance cannot exceed 75%
+            if (ingredient.Tolerance > 75)
+            {
+                throw new InvalidOperationException("Tolerance cannot be more than 75%. Please enter a value between 0 and 75.");
+            }
+
             existing.Name = ingredient.Name;
             existing.UnitId = ingredient.UnitId;
-            existing.PhysicalStock = ingredient.PhysicalStock;
             existing.MinimumStock = ingredient.MinimumStock;
+            existing.Tolerance = ingredient.Tolerance;
 
             existing.UpdatedAt = DateTime.UtcNow;
             existing.UpdatedBy = "System";

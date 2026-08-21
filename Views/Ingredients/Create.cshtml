@@ -17,7 +17,6 @@
         padding: 0 20px;
     }
 
-    /* 🛠️ FIX: Allows dropdown to overflow downwards without being cut off */
     .card {
         overflow: visible !important;
         z-index: 1;
@@ -25,11 +24,6 @@
 
     .card-body {
         overflow: visible !important;
-    }
-
-    .form-control, select {
-        position: relative;
-        z-index: 2;
     }
 </style>
 
@@ -46,33 +40,28 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="Name" class="form-label fw-bold">Name</label>
-                            <!-- 🔥 EXPLICIT name="Name" TO ENSURE BINDING -->
-                            <input asp-for="Name" name="Name" class="form-control" placeholder="e.g. Flour" />
+                            <input asp-for="Name" class="form-control" placeholder="e.g. Flour" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="UnitId" class="form-label fw-bold">Unit</label>
-                            @Html.DropDownListFor(
-                            model => model.UnitId,
-                                                        ViewData["UnitSelectList"] as SelectList,
+                            @Html.DropDownListFor(model => model.UnitId,
+                            ViewData["UnitSelectList"] as SelectList,
                                                                 "-- Select Unit --",
-                                                        new { @class = "form-control" }
-                                                        )
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="PhysicalStock" class="form-label fw-bold">Physical Stock</label>
-                            <!-- 🔥 EXPLICIT name="PhysicalStock" TO ENSURE BINDING -->
-                            <input asp-for="PhysicalStock" name="PhysicalStock" class="form-control" type="number" step="any" placeholder="e.g. 25.5" />
-                            <span asp-validation-for="PhysicalStock" class="text-danger small"></span>
+                                                        new { @class = "form-control" })
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="MinimumStock" class="form-label fw-bold">Minimum Stock</label>
-                            <!-- 🔥 EXPLICIT name="MinimumStock" TO ENSURE BINDING -->
-                            <input asp-for="MinimumStock" name="MinimumStock" class="form-control" type="number" step="any" placeholder="e.g. 5.0" />
+                            <input asp-for="MinimumStock" class="form-control" type="number" step="any" placeholder="e.g. 5.0" />
                             <span asp-validation-for="MinimumStock" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Tolerance" class="form-label fw-bold">Tolerance (%)</label>
+                            <input asp-for="Tolerance" class="form-control" type="number" step="0.01" max="75" placeholder="e.g. 10" />
+                            <span asp-validation-for="Tolerance" class="text-danger small"></span>
                         </div>
                     </div>
 

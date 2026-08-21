@@ -181,14 +181,6 @@
             font-weight: 500;
         }
 
-    /* Pagination buttons */
-    .pagination-container {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }
-
     .pagination-btn {
         border: 1px solid #ddd6ce;
         background: #fff;
@@ -201,10 +193,6 @@
             color: white;
             border-color: #1a1a1a;
         }
-
-        .pagination-btn:hover:not(.active) {
-            background-color: #f0f0f0;
-        }
 </style>
 
 <div class="container-fluid py-5">
@@ -216,21 +204,15 @@
             <p class="text-muted">Manage all your kitchen ingredients and stock levels.</p>
         </div>
 
-        <div class="card-container">
+        @* <div class="card-container">
             <div class="info-card">
                 <i class="bi bi-database"></i>
                 <h5>Total</h5>
                 <h2 id="totalCountDisplay">@Model.Count</h2>
             </div>
-            @{
-                var lowStockItems = Model.Where(i => i.PhysicalStock <= i.MinimumStock).ToList();
-            }
-            <div class="info-card" style="border: 1px solid #dc3545;">
-                <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545;"></i>
-                <h5>Low Stock</h5>
-                <h2 style="color: #dc3545;">@lowStockItems.Count</h2>
-            </div>
-        </div>
+
+
+        </div> *@
 
         <div class="row align-items-center mb-4">
             <div class="col-md-8">
@@ -256,8 +238,8 @@
                         <th class="ps-4 text-center" style="width: 5%;">#</th>
                         <th class="ps-2">Name</th>
                         <th>Unit</th>
-                        <th class="text-center">Physical Stock</th>
                         <th class="text-center">Minimum Stock</th>
+                        <th class="text-center">Tolerance (%)</th>
                         <th class="text-center pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -278,14 +260,8 @@
                                         @item.Unit?.UnitSymbol
                                     </span>
                                 </td>
-                                <td class="text-center fw-bold">
-                                    @item.PhysicalStock.ToString("0.##")
-                                    @if (item.PhysicalStock <= item.MinimumStock)
-                                    {
-                                        <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Low Stock!"></i>
-                                    }
-                                </td>
                                 <td class="text-center">@item.MinimumStock.ToString("0.##")</td>
+                                <td class="text-center fw-bold">@item.Tolerance.ToString("0.##")%</td>
                                 <td class="text-center pe-4">
                                     <button type="button" class="action-btn btn-icon-view"
                                             data-bs-toggle="modal"
@@ -316,8 +292,8 @@
                                         <div class="modal-body px-4 pb-4 pt-2">
                                             <div class="modal-detail-row d-flex justify-content-between"><span>Name</span><span>@item.Name</span></div>
                                             <div class="modal-detail-row d-flex justify-content-between"><span>Unit</span><span>@item.Unit?.UnitSymbol</span></div>
-                                            <div class="modal-detail-row d-flex justify-content-between"><span>Physical Stock</span><span>@item.PhysicalStock</span></div>
                                             <div class="modal-detail-row d-flex justify-content-between"><span>Minimum Stock</span><span>@item.MinimumStock</span></div>
+                                            <div class="modal-detail-row d-flex justify-content-between"><span>Tolerance</span><span>@item.Tolerance%</span></div>
                                         </div>
                                         <div class="modal-footer border-0 px-4 pb-4">
                                             <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-dismiss="modal">Close</button>
@@ -369,7 +345,7 @@
         </div>
 
         <!-- Pagination Controls -->
-        <div class="pagination-container" id="paginationControls"></div>
+        <div class="pagination-container" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;" id="paginationControls"></div>
     </div>
 </div>
 
@@ -379,38 +355,29 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // --- GLOBAL VARIABLES ---
     let rowsPerPage = 10;
     let currentPage = 1;
     let allRows = [];
 
-    // --- INITIALIZE ---
     document.addEventListener('DOMContentLoaded', function() {
         allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
         updateTable();
     });
 
-    // --- LIVE SEARCH (Filter Rows) ---
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let searchValue = this.value.toLowerCase();
-
-        // Filter the rows
         let filteredRows = allRows.filter(row => {
             let text = row.innerText.toLowerCase();
             return text.includes(searchValue);
         });
-
-        // Update the table using filtered rows
         currentPage = 1;
         renderPage(filteredRows);
     });
 
     function filterTable() {
-        // Just triggers the same logic
         document.getElementById('searchInput').dispatchEvent(new Event('keyup'));
     }
 
-    // --- PAGINATION RENDER ---
     function updateTable() {
         renderPage(allRows);
     }
@@ -419,29 +386,23 @@
         const tableBody = document.getElementById('tableBody');
         const paginationContainer = document.getElementById('paginationControls');
 
-        // Hide all rows first
         tableBody.innerHTML = '';
 
-        // Calculate pagination indices
         let start = (currentPage - 1) * rowsPerPage;
         let end = start + rowsPerPage;
         let paginatedRows = rows.slice(start, end);
 
-        // Append visible rows
         paginatedRows.forEach(row => {
             tableBody.appendChild(row);
         });
 
-        // Update the "Total" card count (shows filtered count)
         document.getElementById('totalCountDisplay').innerText = rows.length;
 
-        // Draw Pagination Buttons
         let totalPages = Math.ceil(rows.length / rowsPerPage);
         paginationContainer.innerHTML = '';
 
-        if (totalPages <= 1) return; // No pagination needed
+        if (totalPages <= 1) return;
 
-        // Previous Button
         let prevBtn = document.createElement('button');
         prevBtn.className = 'pagination-btn';
         prevBtn.innerText = '‹';
@@ -450,7 +411,6 @@
         };
         paginationContainer.appendChild(prevBtn);
 
-        // Page Numbers
         for (let i = 1; i <= totalPages; i++) {
             let btn = document.createElement('button');
             btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
@@ -462,7 +422,6 @@
             paginationContainer.appendChild(btn);
         }
 
-        // Next Button
         let nextBtn = document.createElement('button');
         nextBtn.className = 'pagination-btn';
         nextBtn.innerText = '›';
@@ -472,7 +431,6 @@
         paginationContainer.appendChild(nextBtn);
     }
 
-    // --- DELETE SUBMIT ---
     function submitDelete(id) {
         var form = document.getElementById('deleteForm_' + id);
         if (form) {

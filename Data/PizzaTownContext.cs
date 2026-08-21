@@ -14,7 +14,7 @@ namespace PizzaTownDHA.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductIngredient> ProductIngredients { get; set; }
         public DbSet<KitchenLog> KitchenLogs { get; set; }
-
+        public DbSet<StockAudit> StockAudits { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -40,8 +40,8 @@ namespace PizzaTownDHA.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name);
                 entity.Property(e => e.UnitId);
-                entity.Property(e => e.PhysicalStock);
                 entity.Property(e => e.MinimumStock);
+                entity.Property(e => e.Tolerance);
                 entity.Property(e => e.CreatedBy);
                 entity.Property(e => e.CreatedAt);
                 entity.Property(e => e.UpdatedBy);
