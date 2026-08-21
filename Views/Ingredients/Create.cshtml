@@ -25,6 +25,11 @@
     .card-body {
         overflow: visible !important;
     }
+
+    .form-control, select {
+        position: relative;
+        z-index: 2;
+    }
 </style>
 
 <div class="container-fluid py-5">
@@ -34,39 +39,43 @@
                 <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i> Create Ingredient</h4>
             </div>
             <div class="card-body p-4">
-                <form asp-action="Create" method="post">
+                <form id="createIngredientForm" asp-action="Create" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="Name" class="form-label fw-bold">Name</label>
-                            <input asp-for="Name" class="form-control" placeholder="e.g. Flour" />
+                            <input id="Name" name="Name" asp-for="Name" class="form-control" placeholder="e.g. Flour" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="UnitId" class="form-label fw-bold">Unit</label>
-                            @Html.DropDownListFor(model => model.UnitId,
-                            ViewData["UnitSelectList"] as SelectList,
-                                                                "-- Select Unit --",
-                                                        new { @class = "form-control" })
+                            <select id="UnitId" name="UnitId" class="form-control" asp-for="UnitId">
+                                <option value="">-- Select Unit --</option>
+                                @if (ViewData["UnitSelectList"] != null)
+                                {
+                                    foreach (var item in (SelectList)ViewData["UnitSelectList"])
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                }
+                            </select>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="MinimumStock" class="form-label fw-bold">Minimum Stock</label>
-                            <input asp-for="MinimumStock" class="form-control" type="number" step="any" placeholder="e.g. 5.0" />
-                            <span asp-validation-for="MinimumStock" class="text-danger small"></span>
+                            <input id="MinimumStock" name="MinimumStock" asp-for="MinimumStock" class="form-control" type="number" step="any" placeholder="e.g. 5.0" />
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="Tolerance" class="form-label fw-bold">Tolerance (%)</label>
-                            <input asp-for="Tolerance" class="form-control" type="number" step="0.01" max="75" placeholder="e.g. 10" />
-                            <span asp-validation-for="Tolerance" class="text-danger small"></span>
+                            <input id="Tolerance" name="Tolerance" asp-for="Tolerance" class="form-control" type="number" step="0.01" max="75" placeholder="e.g. 10" />
                         </div>
                     </div>
 
                     <div class="mt-4 d-flex gap-2">
-                        <button type="submit" class="btn btn-danger rounded-pill px-4">Create Ingredient</button>
+                        <button type="button" id="submitBtn" class="btn btn-danger rounded-pill px-4">Create Ingredient</button>
                         <a href="/Ingredients" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
                     </div>
                 </form>
@@ -77,3 +86,45 @@
 
 <input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
 <input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        let name = document.getElementById('Name').value;
+        let unitId = document.getElementById('UnitId').value;
+        let minStock = document.getElementById('MinimumStock').value;
+        let tolerance = document.getElementById('Tolerance').value;
+
+        // Validate
+        if (name === "" || unitId === "") {
+            alert("Please fill in Name and Unit.");
+            return;
+        }
+
+        // Build the FormData manually
+        let formData = new FormData();
+        formData.append('Name', name);
+        formData.append('UnitId', unitId);
+        formData.append('MinimumStock', minStock);
+        formData.append('Tolerance', tolerance);
+
+        // Send it!
+        fetch('/Ingredients/Create', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>

@@ -53,6 +53,16 @@
             color: white;
             border-color: #1a1a1a;
         }
+
+    .unit-badge {
+        background-color: #f8f6f3;
+        color: #b33c2e;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 5px;
+    }
 </style>
 
 <div class="container-fluid py-5">
@@ -66,7 +76,6 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-12">
                             <label class="form-label fw-bold">Received Date</label>
-                            <!-- 🚨 max prevents future dates in UI -->
                             <input type="date" name="receivedDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
                         </div>
                     </div>
@@ -81,7 +90,6 @@
                     <div class="row g-3" id="ingredientGrid">
                         @if (ingredients != null && ingredients.Count > 0)
                         {
-                            int index = 0;
                             @foreach (var p in ingredients)
                             {
                                 <div class="col-md-6 col-lg-4 ingredient-wrapper" data-name="@p.Name.ToLower()">
@@ -91,17 +99,16 @@
                                                    name="ingredientIds" value="@p.Id" id="ing_@p.Id" />
                                             <label class="form-check-label fw-bold" for="ing_@p.Id">
                                                 @p.Name
+                                                <span class="unit-badge">@p.Unit?.UnitSymbol</span>
                                             </label>
                                         </div>
                                         <div class="mt-2">
-                                            <label class="small text-muted">Quantity Received:</label>
-                                            <!-- 🚨 min="1" prevents negative numbers -->
+                                            <label class="small text-muted">Quantity Received (@p.Unit?.UnitSymbol):</label>
                                             <input type="number" step="any" min="1" class="form-control form-control-sm quantity-input"
                                                    name="quantities" placeholder="e.g. 50" disabled />
                                         </div>
                                     </div>
                                 </div>
-                                index++;
                             }
                         }
                     </div>

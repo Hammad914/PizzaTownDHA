@@ -204,15 +204,13 @@
             <p class="text-muted">Manage all your kitchen ingredients and stock levels.</p>
         </div>
 
-        @* <div class="card-container">
+        <div class="card-container">
             <div class="info-card">
                 <i class="bi bi-database"></i>
                 <h5>Total</h5>
                 <h2 id="totalCountDisplay">@Model.Count</h2>
             </div>
-
-
-        </div> *@
+        </div>
 
         <div class="row align-items-center mb-4">
             <div class="col-md-8">
@@ -319,9 +317,7 @@
                                         <div class="modal-footer border-0 justify-content-center pb-4">
                                             <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                                             <form id="deleteForm_@item.Id" action="/Ingredients/Delete/@item.Id" method="post" style="display:inline;">
-                                                <button type="button" class="btn btn-danger rounded-pill px-4" onclick="submitDelete('@item.Id')">
-                                                    Yes, Delete
-                                                </button>
+                                                <button type="submit" class="btn btn-danger rounded-pill px-4">Yes, Delete</button>
                                             </form>
                                         </div>
                                     </div>
@@ -344,15 +340,12 @@
             </table>
         </div>
 
-        <!-- Pagination Controls -->
         <div class="pagination-container" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;" id="paginationControls"></div>
     </div>
 </div>
 
 <input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
 <input type="hidden" id="tempDataError" value="@TempData["Error"]" />
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     let rowsPerPage = 10;
@@ -384,57 +377,31 @@
 
     function renderPage(rows) {
         const tableBody = document.getElementById('tableBody');
-        const paginationContainer = document.getElementById('paginationControls');
-
         tableBody.innerHTML = '';
 
         let start = (currentPage - 1) * rowsPerPage;
         let end = start + rowsPerPage;
         let paginatedRows = rows.slice(start, end);
 
-        paginatedRows.forEach(row => {
-            tableBody.appendChild(row);
-        });
-
-        document.getElementById('totalCountDisplay').innerText = rows.length;
+        paginatedRows.forEach(row => { tableBody.appendChild(row); });
 
         let totalPages = Math.ceil(rows.length / rowsPerPage);
-        paginationContainer.innerHTML = '';
+        let container = document.getElementById('paginationControls');
+        container.innerHTML = '';
 
         if (totalPages <= 1) return;
-
-        let prevBtn = document.createElement('button');
-        prevBtn.className = 'pagination-btn';
-        prevBtn.innerText = '‹';
-        prevBtn.onclick = function() {
-            if (currentPage > 1) { currentPage--; renderPage(rows); }
-        };
-        paginationContainer.appendChild(prevBtn);
 
         for (let i = 1; i <= totalPages; i++) {
             let btn = document.createElement('button');
             btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
             btn.innerText = i;
-            btn.onclick = function() {
-                currentPage = i;
-                renderPage(rows);
-            };
-            paginationContainer.appendChild(btn);
+            btn.onclick = function() { currentPage = i; renderPage(rows); };
+            container.appendChild(btn);
         }
-
-        let nextBtn = document.createElement('button');
-        nextBtn.className = 'pagination-btn';
-        nextBtn.innerText = '›';
-        nextBtn.onclick = function() {
-            if (currentPage < totalPages) { currentPage++; renderPage(rows); }
-        };
-        paginationContainer.appendChild(nextBtn);
     }
 
+    // ✅ No confirm() - just submit the form directly
     function submitDelete(id) {
-        var form = document.getElementById('deleteForm_' + id);
-        if (form) {
-            form.submit();
-        }
+        document.getElementById('deleteForm_' + id).submit();
     }
 </script>

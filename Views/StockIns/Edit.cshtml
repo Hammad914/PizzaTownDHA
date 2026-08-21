@@ -1,0 +1,76 @@
+﻿@model PizzaTownDHA.Models.Entities.StockIn
+@{
+    ViewData["Title"] = "Edit Stock In";
+    var ingredients = ViewData["IngredientList"] as List<PizzaTownDHA.Models.Entities.Ingredient>;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+    }
+
+    .page-wrapper {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .card {
+        overflow: visible !important;
+        z-index: 1;
+    }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-warning text-dark border-0 py-3">
+                <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i> Edit Stock In</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <!-- Preserve the ID -->
+                    <input type="hidden" name="Id" value="@Model.Id.ToString().Replace("{", "").Replace("}", "")" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ingredient</label>
+                            <select name="IngredientId" class="form-control">
+                                @if (ingredients != null)
+                                {
+                                    @foreach (var ing in ingredients)
+                                    {
+                                        <option value="@ing.Id" selected="@(ing.Id == Model.IngredientId ? "selected" : null)">
+                                            @ing.Name (@ing.Unit?.UnitSymbol)
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Quantity Received</label>
+                            <input type="number" name="QuantityReceived" class="form-control" value="@Model.QuantityReceived" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Received Date</label>
+                            <input type="date" name="ReceivedDate" class="form-control" value="@Model.ReceivedDate.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning rounded-pill px-4 text-dark">Update Stock In</button>
+                        <a href="/StockIns" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />

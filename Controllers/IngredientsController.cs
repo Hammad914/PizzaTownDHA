@@ -26,7 +26,6 @@ namespace PizzaTownDHA.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-
             var units = await unitService.GetAllAsync();
             ViewData["UnitSelectList"] = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(units, "Id", "UnitSymbol");
             return View();
@@ -34,9 +33,9 @@ namespace PizzaTownDHA.Controllers
 
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,UnitId,MinimumStock,Tolerance")] Ingredient ingredient)
+        public async Task<IActionResult> Create(Ingredient ingredient)
         {
-            // 1. Check for Duplicate Name
+            // Check for duplicate
             if (!string.IsNullOrWhiteSpace(ingredient.Name))
             {
                 if (await ingredientService.IngredientNameExistsAsync(ingredient.Name))
@@ -46,35 +45,24 @@ namespace PizzaTownDHA.Controllers
                 }
             }
 
-            // 2. Check Tolerance > 75
+            // Check tolerance
             if (ingredient.Tolerance > 75)
             {
-                TempData["Error"] = "Tolerance cannot be more than 75%. Please enter a value between 0 and 75.";
+                TempData["Error"] = "Tolerance cannot be more than 75%.";
                 return RedirectToAction(nameof(Index));
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    await ingredientService.RegisterIngredientAsync(ingredient);
-                    TempData["Success"] = "Ingredient created successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (InvalidOperationException ex)
-                {
-                    TempData["Error"] = ex.Message;
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException)
-                {
-                    TempData["Error"] = "A record with that name already exists.";
-                    return RedirectToAction(nameof(Index));
-                }
+                await ingredientService.RegisterIngredientAsync(ingredient);
+                TempData["Success"] = "Ingredient created successfully!";
+                return RedirectToAction(nameof(Index));
             }
-
-            TempData["Error"] = "Please fill in all required fields correctly.";
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -91,7 +79,7 @@ namespace PizzaTownDHA.Controllers
 
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Edit(Guid Id, [Bind("Id,Name,UnitId,MinimumStock,Tolerance")] Ingredient ingredient)
+        public async Task<IActionResult> Edit(Guid Id, Ingredient ingredient)
         {
             if (Id != ingredient.Id)
                 return NotFound();

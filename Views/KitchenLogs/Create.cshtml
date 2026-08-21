@@ -80,26 +80,26 @@
                     <div class="row g-3" id="productGrid">
                         @if (products != null && products.Count > 0)
                         {
-                            int index = 0;
                             @foreach (var p in products)
                             {
                                 <div class="col-md-6 col-lg-4 product-wrapper" data-name="@p.Name.ToLower()">
                                     <div class="item-card">
                                         <div class="form-check mb-2">
+                                            <!-- ✅ FLAT NAME: NO [index] -->
                                             <input class="form-check-input product-checkbox" type="checkbox"
-                                                   name="productIds[@index]" value="@p.Id" id="prod_@p.Id" />
+                                                   name="productIds" value="@p.Id" id="prod_@p.Id" />
                                             <label class="form-check-label fw-bold" for="prod_@p.Id">
                                                 @p.Name
                                             </label>
                                         </div>
                                         <div class="mt-2">
                                             <label class="small text-muted">Quantity Made:</label>
+                                            <!-- ✅ FLAT NAME: NO [index] -->
                                             <input type="number" step="1" class="form-control form-control-sm quantity-input"
-                                                   name="quantities[@index]" placeholder="e.g. 10" disabled />
+                                                   name="quantities" placeholder="e.g. 10" disabled />
                                         </div>
                                     </div>
                                 </div>
-                                index++;
                             }
                         }
                     </div>

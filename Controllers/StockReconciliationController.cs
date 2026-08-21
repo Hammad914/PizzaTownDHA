@@ -69,7 +69,6 @@ namespace PizzaTownDHA.Controllers
                     .Where(x => x.IngredientId == ingredient.Id)
                     .Sum(x => x.QuantityReceived);
 
-                // ✅ "Used" based on products made today × recipe quantity
                 decimal used = 0;
                 foreach (var product in allProducts)
                 {
@@ -86,6 +85,21 @@ namespace PizzaTownDHA.Controllers
 
                 decimal theoreticalClosing = openingStock + totalStockIn - used;
 
+                // ✅ Calculate the raw discrepancy
+                decimal rawDiscrepancy = theoreticalClosing - (audit?.ActualClosingStock ?? 0);
+
+                // ✅ Calculate the discrepancy percentage
+                decimal discrepancyPercentage = theoreticalClosing != 0
+                    ? (Math.Abs(rawDiscrepancy) / theoreticalClosing) * 100
+                    : 0;
+
+                // ✅ ONLY SHOW DISCREPANCY IF IT EXCEEDS THE TOLERANCE
+                decimal displayDiscrepancy = 0;
+                if (discrepancyPercentage > ingredient.Tolerance)
+                {
+                    displayDiscrepancy = rawDiscrepancy;
+                }
+
                 model.Add(new StockReconciliationRow
                 {
                     IngredientId = ingredient.Id,
@@ -97,7 +111,7 @@ namespace PizzaTownDHA.Controllers
                     Used = used,
                     TheoreticalClosing = theoreticalClosing,
                     ActualClosingStock = audit?.ActualClosingStock ?? 0,
-                    Discrepancy = theoreticalClosing - (audit?.ActualClosingStock ?? 0)
+                    Discrepancy = displayDiscrepancy
                 });
             }
 
@@ -119,7 +133,7 @@ namespace PizzaTownDHA.Controllers
             {
                 if (actualClosingStocks[i] < 0)
                 {
-                    TempData["Error"] = "Stock cannot be negative. Please check your input.";
+                    TempData["Error"] = "Stock cannot be negative.";
                     return RedirectToAction(nameof(Index));
                 }
             }

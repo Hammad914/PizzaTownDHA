@@ -2,9 +2,6 @@
     ViewData["Title"] = "Home";
 }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
 <style>
     body {
         background-color: #f8f6f3;
@@ -88,43 +85,6 @@
     <h2 class="text-center mb-4 fw-bold" style="color: #1a1a1a;">Quick Access</h2>
 
     <div class="row g-4">
-        <!-- Units -->
-        <div class="col-md-6 col-lg-3">
-            <a href="/Units" class="card feature-card h-100 p-4 text-center">
-                <div class="icon-circle mx-auto"><i class="bi bi-boxes"></i></div>
-                <h5>Units</h5>
-                <p>Manage measurement units like kg, g, L, and pcs.</p>
-            </a>
-        </div>
-
-        <!-- Ingredients -->
-        <div class="col-md-6 col-lg-3">
-            <a href="/Ingredients" class="card feature-card h-100 p-4 text-center">
-                <div class="icon-circle mx-auto"><i class="bi bi-basket"></i></div>
-                <h5>Ingredients</h5>
-                <p>Track raw materials, stock levels, and tolerance.</p>
-            </a>
-        </div>
-
-        <!-- Products -->
-        <div class="col-md-6 col-lg-3">
-            <a href="/Products" class="card feature-card h-100 p-4 text-center">
-                <div class="icon-circle mx-auto"><i class="bi bi-egg-fried"></i></div>
-                <h5>Products</h5>
-                <p>Create recipes with ingredients and quantities.</p>
-            </a>
-        </div>
-
-        <!-- Kitchen Logs -->
-        <div class="col-md-6 col-lg-3">
-            <a href="/KitchenLogs" class="card feature-card h-100 p-4 text-center">
-                <div class="icon-circle mx-auto"><i class="bi bi-clock-history"></i></div>
-                <h5>Kitchen Logs</h5>
-                <p>Log production and track what you serve daily.</p>
-            </a>
-        </div>
-
-        <!-- Stock Reconciliation -->
         <div class="col-md-6 col-lg-3">
             <a href="/StockReconciliation" class="card feature-card h-100 p-4 text-center">
                 <div class="icon-circle mx-auto"><i class="bi bi-clipboard-check"></i></div>
@@ -132,8 +92,41 @@
                 <p>End-of-day stock count with discrepancy tracking.</p>
             </a>
         </div>
-
-        <!-- Stock History -->
+        <div class="col-md-6 col-lg-3">
+            <a href="/StockIns/Create" class="card feature-card h-100 p-4 text-center">
+                <div class="icon-circle mx-auto"><i class="bi bi-truck"></i></div>
+                <h5>Add Stock In</h5>
+                <p>Record deliveries and raw material receipts.</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Units" class="card feature-card h-100 p-4 text-center">
+                <div class="icon-circle mx-auto"><i class="bi bi-boxes"></i></div>
+                <h5>Units</h5>
+                <p>Manage measurement units like kg, g, L, and pcs.</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Ingredients" class="card feature-card h-100 p-4 text-center">
+                <div class="icon-circle mx-auto"><i class="bi bi-basket"></i></div>
+                <h5>Ingredients</h5>
+                <p>Track raw materials, stock levels, and tolerance.</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Products" class="card feature-card h-100 p-4 text-center">
+                <div class="icon-circle mx-auto"><i class="bi bi-egg-fried"></i></div>
+                <h5>Products</h5>
+                <p>Create recipes with ingredients and quantities.</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/KitchenLogs" class="card feature-card h-100 p-4 text-center">
+                <div class="icon-circle mx-auto"><i class="bi bi-clock-history"></i></div>
+                <h5>Kitchen Logs</h5>
+                <p>Log production and track what you serve daily.</p>
+            </a>
+        </div>
         <div class="col-md-6 col-lg-3">
             <a href="/StockReconciliation/History" class="card feature-card h-100 p-4 text-center">
                 <div class="icon-circle mx-auto"><i class="bi bi-clock-history"></i></div>
@@ -141,22 +134,11 @@
                 <p>Review past stock counts and daily trends.</p>
             </a>
         </div>
-
-        <!-- Recipes -->
         <div class="col-md-6 col-lg-3">
-            <a href="/Products" class="card feature-card h-100 p-4 text-center">
-                <div class="icon-circle mx-auto"><i class="bi bi-layout-text-window-reverse"></i></div>
-                <h5>Recipes</h5>
-                <p>Combine ingredients to make your menu items.</p>
-            </a>
-        </div>
-
-        <!-- Insights -->
-        <div class="col-md-6 col-lg-3">
-            <a href="/KitchenLogs" class="card feature-card h-100 p-4 text-center">
-                <div class="icon-circle mx-auto"><i class="bi bi-graph-up-arrow"></i></div>
-                <h5>Insights</h5>
-                <p>See top selling products and daily averages.</p>
+            <a href="/StockIns" class="card feature-card h-100 p-4 text-center">
+                <div class="icon-circle mx-auto"><i class="bi bi-truck"></i></div>
+                <h5>Stock In History</h5>
+                <p>View all deliveries and receipts.</p>
             </a>
         </div>
     </div>

@@ -1,0 +1,41 @@
+﻿@model PizzaTownDHA.Models.Entities.StockIn
+@{
+    ViewData["Title"] = "Delete Stock In";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-danger border-2 rounded-4">
+                <div class="card-header bg-danger text-white rounded-top-4 border-0 p-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion</h4>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="fs-5">Are you sure you want to delete <strong>@Model.Ingredient?.Name</strong>?</p>
+                    <p class="text-muted">Quantity Received: <strong>@Model.QuantityReceived</strong></p>
+                    <p class="text-muted small">This action cannot be undone.</p>
+
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/StockIns" class="btn btn-secondary rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">Yes, Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />

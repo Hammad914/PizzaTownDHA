@@ -167,7 +167,6 @@
                             <i class="bi bi-search text-muted"></i>
                         </span>
                         <input type="text" id="searchInput" class="form-control search-box" placeholder="Search ingredients...">
-                        <button class="btn search-btn" onclick="filterTable()">Search</button>
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
@@ -197,10 +196,9 @@
                         {
                             var item = Model[i];
 
-                            // Calculate Discrepancy in Percentage
-                            decimal discrepancyValue = item.Discrepancy;
-                            decimal discrepancyPercent = item.TheoreticalClosing != 0
-                            ? (discrepancyValue / item.TheoreticalClosing) * 100
+                            // Calculate Discrepancy Percentage (For display purpose)
+                            decimal discrepancyPercentage = item.TheoreticalClosing != 0
+                            ? (Math.Abs(item.Discrepancy) / item.TheoreticalClosing) * 100
                             : 0;
 
                             <tr class="data-row">
@@ -213,13 +211,13 @@
                                 <td class="text-center fw-bold">@item.TheoreticalClosing.ToString("0.##")</td>
                                 <td class="text-center fw-bold text-primary">@item.ActualClosingStock.ToString("0.##")</td>
                                 <td class="text-center">
-                                    @if (discrepancyValue > 0)
+                                    @if (item.Discrepancy > 0)
                                     {
-                                        <span class="text-danger fw-bold">+@discrepancyValue.ToString("0.##") (@discrepancyPercent.ToString("0.##")%)</span>
+                                        <span class="text-danger fw-bold">+@item.Discrepancy.ToString("0.##") (@discrepancyPercentage.ToString("0.##")%)</span>
                                     }
-                                    else if (discrepancyValue < 0)
+                                    else if (item.Discrepancy < 0)
                                     {
-                                        <span class="text-success">@discrepancyValue.ToString("0.##") (@discrepancyPercent.ToString("0.##")%)</span>
+                                        <span class="text-success fw-bold">@item.Discrepancy.ToString("0.##") (@discrepancyPercentage.ToString("0.##")%)</span>
                                     }
                                     else
                                     {
@@ -308,10 +306,37 @@
         }
     }
 
-    // JavaScript to manually submit BulkUpdate (Prevents page reload)
+    // 🚨 CRITICAL: MANUAL SUBMIT - ONLY SENDS ROWS WITH VALUES
     document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        let formData = new FormData(this);
+
+        let allInputs = document.querySelectorAll('input[name="actualClosingStocks"]');
+        let allIDs = document.querySelectorAll('input[name="ingredientIds"]');
+
+        let ingredientIds = [];
+        let actualClosingStocks = [];
+
+        for (let i = 0; i < allInputs.length; i++) {
+            let value = allInputs[i].value;
+            if (value !== "" && value !== null) {
+                ingredientIds.push(allIDs[i].value);
+                actualClosingStocks.push(value);
+            }
+        }
+
+        if (ingredientIds.length === 0) {
+            alert("Please enter at least one stock count!");
+            return;
+        }
+
+        // Build a clean FormData
+        let formData = new FormData();
+        formData.append('businessDate', document.querySelector('input[name="businessDate"]').value);
+
+        for (let i = 0; i < ingredientIds.length; i++) {
+            formData.append('ingredientIds', ingredientIds[i]);
+            formData.append('actualClosingStocks', actualClosingStocks[i]);
+        }
 
         fetch('/StockReconciliation/BulkUpdate', {
             method: 'POST',
