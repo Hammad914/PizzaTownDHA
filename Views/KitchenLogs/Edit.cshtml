@@ -1,0 +1,64 @@
+﻿@model PizzaTownDHA.Models.Entities.KitchenLog
+@{
+    ViewData["Title"] = "Edit Kitchen Log";
+    var products = ViewData["ProductList"] as List<PizzaTownDHA.Models.Entities.Product>;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+    }
+
+    .page-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-warning text-dark border-0 py-3">
+                <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i> Edit Kitchen Log</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+
+                    <!-- Hidden ID field to preserve the log identity -->
+                    <input type="hidden" name="Id" value="@Model.Id.ToString().Replace("{", "").Replace("}", "")" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Product</label>
+                        <select name="productId" class="form-control">
+                            <option value="">-- Select Product --</option>
+                            @if (products != null)
+                            {
+                                @foreach (var p in products)
+                                {
+                                    <option value="@p.Id" selected="@(p.Id == Model.ProductId ? "selected" : null)">@p.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Quantity Made</label>
+                        <input type="number" name="quantityMade" class="form-control" value="@Model.QuantityMade" min="1" required />
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning rounded-pill px-4 text-dark">Update Log</button>
+                        <a href="/KitchenLogs" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />

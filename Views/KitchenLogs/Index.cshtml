@@ -1,0 +1,474 @@
+﻿@model List<PizzaTownDHA.Models.Entities.KitchenLog>
+@{
+    ViewData["Title"] = "Kitchen Logs";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+        color: #222222;
+    }
+
+    .page-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .info-card {
+        flex: 0 0 220px;
+        max-width: 220px;
+        border: 1px solid #e5ddd4;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease;
+        padding: 1rem 0.5rem;
+        text-align: center;
+    }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        }
+
+        .info-card .bi {
+            font-size: 1.6rem;
+            color: #777;
+        }
+
+    .filter-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        transition: 0.2s ease;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+        .filter-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+
+    .search-box {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+        background: #ffffff;
+        border: 1px solid #ddd6ce;
+        padding: 0.6rem 1rem;
+    }
+
+    .table-custom {
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+        .table-custom thead {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+            .table-custom thead th {
+                font-size: 0.85rem;
+                padding: 1rem 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+        .table-custom tbody td {
+            font-size: 1rem;
+            padding: 1rem 1rem;
+            vertical-align: middle;
+            color: #222;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f9f6f2;
+        }
+
+    .action-btn {
+        background: transparent;
+        border: none;
+        font-size: 1.3rem;
+        transition: transform 0.2s ease;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 3px;
+    }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+    .btn-icon-view {
+        background-color: #f0efed;
+        color: #444;
+    }
+
+        .btn-icon-view:hover {
+            background-color: #dcdcdc;
+        }
+
+    .btn-icon-edit {
+        background-color: transparent;
+        color: #b45f06;
+        border: 1px solid #b45f06;
+    }
+
+        .btn-icon-edit:hover {
+            background-color: #b45f06;
+            color: #fff;
+        }
+
+    .btn-icon-delete {
+        background-color: transparent;
+        color: #ba2d0b;
+        border: 1px solid #ba2d0b;
+    }
+
+        .btn-icon-delete:hover {
+            background-color: #ba2d0b;
+            color: #fff;
+        }
+
+    .page-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+        .page-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1a1a;">
+                <i class="bi bi-clock-history" style="color: #b33c2e; margin-right: 0.5rem;"></i> Kitchen Logs
+            </h2>
+            <p class="text-muted">Track every product your kitchen serves.</p>
+        </div>
+
+        <!-- Filter Tabs & Cards -->
+        <div class="d-flex justify-content-center gap-2 mb-4" id="filterContainer">
+            <button class="filter-btn active" data-period="today">Today</button>
+            <button class="filter-btn" data-period="week">This Week</button>
+            <button class="filter-btn" data-period="month">This Month</button>
+        </div>
+
+        <div class="card-container" id="insightCards">
+            <!-- Card 1: Total Products Served -->
+            <div class="info-card">
+                <i class="bi bi-basket"></i>
+                <h5>Total Products Served</h5>
+                <h2 id="totalServed">0</h2>
+            </div>
+
+            <!-- Card 2: Top Selling Product -->
+            <div class="info-card" style="border: 1px solid #b33c2e;">
+                <i class="bi bi-trophy" style="color: #b33c2e;"></i>
+                <h5>Top Selling Product</h5>
+                <h2 id="topProduct" style="font-size: 1.2rem; color: #b33c2e;">—</h2>
+            </div>
+
+            <!-- Card 3: Daily Average Served -->
+            <div class="info-card">
+                <i class="bi bi-bar-chart-fill"></i>
+                <h5>Daily Average Served</h5>
+                <h2 id="dailyAvg">0</h2>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-4">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 10px 0 0 10px;">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control search-box" placeholder="Search logs by product...">
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="/KitchenLogs/Create" class="btn btn-danger rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-plus-circle me-2"></i> Add Log
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive table-custom">
+            <table class="table table-hover mb-0" id="unitTable">
+                <thead>
+                    <tr>
+                        <th class="ps-4 text-center" style="width: 5%;">#</th>
+                        <th class="ps-2">Product</th>
+                        <th class="text-center">Products Served</th>
+                        <th class="text-center pe-4">Logged At</th>
+                        <th class="text-center pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int counter = 1;
+                        @foreach (var log in Model)
+                        {
+                            var deleteModalId = $"deleteModal_{log.Id}";
+
+                            <tr class="log-row">
+                                <td class="ps-4 text-center fw-bold">@counter</td>
+                                <td class="ps-2 fw-bold">@log.Product?.Name</td>
+                                <td class="text-center">@log.QuantityMade</td>
+                                <td class="text-center pe-4">@log.DateLogged.ToString("g")</td>
+                                <td class="text-center pe-4">
+                                    <a href="/KitchenLogs/Edit/@log.Id" class="action-btn btn-icon-edit" title="Edit Log">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="action-btn btn-icon-delete"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#@deleteModalId" title="Delete Log">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="@deleteModalId" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content shadow-lg border-0 rounded-4">
+                                        <div class="modal-header bg-danger text-white border-0 rounded-top-4">
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-4 text-center">
+                                            <p class="fs-5">Are you sure you want to delete <strong>@log.Product?.Name</strong> log?</p>
+                                            <p class="text-muted small">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer border-0 justify-content-center pb-4">
+                                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                            <form id="deleteForm_@log.Id" action="/KitchenLogs/Delete/@log.Id" method="post" style="display:inline;">
+                                                <button type="button" class="btn btn-danger rounded-pill px-4" onclick="submitDelete('@log.Id')">
+                                                    Yes, Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-clock-history d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
+                                No logs recorded yet.
+                                <br />
+                                <a href="/KitchenLogs/Create" class="btn btn-dark btn-sm mt-2">Add your first log</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-center mt-3" id="paginationControls"></div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ==========================================
+    // GLOBAL VARIABLES
+    // ==========================================
+    const rowsPerPage = 15;
+    let currentPage = 1;
+    let filteredRows = [];
+    let allLogs = [];
+
+    // 🧠 HELPER: Apply the 5-Hour Business Date Buffer
+    function getBusinessDate(date) {
+        const d = new Date(date);
+        // If hour is less than 5 (i.e., 12:00 AM to 4:59 AM), subtract 1 day
+        if (d.getHours() < 5) {
+            d.setDate(d.getDate() - 1);
+        }
+        // Return just the date part (midnight)
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+
+    // ==========================================
+    // DATA EXTRACTION
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('#tableBody .log-row');
+        allLogs = Array.from(rows).map(row => {
+            const productName = row.querySelector('td:nth-child(2)')?.innerText.trim() || '';
+            const quantityText = row.querySelector('td:nth-child(3)')?.innerText.trim() || '0';
+            const quantity = parseInt(quantityText) || 0;
+            const dateText = row.querySelector('td:nth-child(4)')?.innerText.trim() || '';
+
+            // Parse the date string and apply the buffer
+            const rawDate = new Date(dateText);
+            const businessDate = getBusinessDate(rawDate);
+
+            return { row, productName, quantity, date: businessDate };
+        });
+        filteredRows = allLogs;
+        applyPagination();
+        updateInsights();
+    });
+
+    // ==========================================
+    // INSIGHT CARDS UPDATE
+    // ==========================================
+    function updateInsights() {
+        const visibleLogs = filteredRows.filter(l => l.row.style.display !== 'none');
+
+        // 1. Total Products Served
+        const totalServed = visibleLogs.reduce((sum, l) => sum + l.quantity, 0);
+        document.getElementById('totalServed').innerText = totalServed;
+
+        // 2. Top Selling Product (Sum by Product Name)
+        const productTotals = {};
+        visibleLogs.forEach(l => {
+            const name = l.productName;
+            if (productTotals[name]) {
+                productTotals[name] += l.quantity;
+            } else {
+                productTotals[name] = l.quantity;
+            }
+        });
+
+        let topProductName = '—';
+        let topCount = 0;
+        for (const [name, count] of Object.entries(productTotals)) {
+            if (count > topCount) {
+                topCount = count;
+                topProductName = name;
+            }
+        }
+        document.getElementById('topProduct').innerText = topProductName !== '—' ? `${topProductName} (${topCount})` : '—';
+
+        // 3. Daily Average Served
+        const uniqueDays = new Set(visibleLogs.map(l => l.date.toDateString()));
+        const dailyAvg = uniqueDays.size > 0 ? Math.round(totalServed / uniqueDays.size) : 0;
+        document.getElementById('dailyAvg').innerText = dailyAvg;
+    }
+
+    // ==========================================
+    // TIME FILTER (Today / Week / Month)
+    // ==========================================
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const period = this.dataset.period;
+            const now = getBusinessDate(new Date()); // Today's business date with buffer
+
+            filteredRows = allLogs.filter(l => {
+                const logDate = l.date;
+                if (period === 'today') {
+                    return logDate.getTime() === now.getTime();
+                } else if (period === 'week') {
+                    const oneWeekAgo = new Date(now);
+                    oneWeekAgo.setDate(now.getDate() - 7);
+                    return logDate >= oneWeekAgo;
+                } else if (period === 'month') {
+                    const oneMonthAgo = new Date(now);
+                    oneMonthAgo.setMonth(now.getMonth() - 1);
+                    return logDate >= oneMonthAgo;
+                }
+                return true;
+            });
+
+            currentPage = 1;
+            applyPagination();
+            updateInsights();
+        });
+    });
+
+    // ==========================================
+    // LIVE SEARCH
+    // ==========================================
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        filteredRows = allLogs.filter(l => l.productName.toLowerCase().includes(searchValue));
+        currentPage = 1;
+        applyPagination();
+        updateInsights();
+    });
+
+    // ==========================================
+    // PAGINATION
+    // ==========================================
+    function applyPagination() {
+        const tableBody = document.getElementById('tableBody');
+        const allRows = document.querySelectorAll('#tableBody .log-row');
+        allRows.forEach(row => row.style.display = 'none');
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedRows = filteredRows.slice(start, end);
+        paginatedRows.forEach(l => l.row.style.display = '');
+
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = function() { currentPage = i; applyPagination(); };
+            container.appendChild(btn);
+        }
+    }
+
+    // ==========================================
+    // DELETE SUBMIT
+    // ==========================================
+    function submitDelete(id) {
+        if (confirm('Are you sure you want to delete this log?')) {
+            document.getElementById('deleteForm_' + id).submit();
+        }
+    }
+</script>

@@ -13,6 +13,7 @@ namespace PizzaTownDHA.Data
 
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductIngredient> ProductIngredients { get; set; }
+        public DbSet<KitchenLog> KitchenLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -76,6 +77,23 @@ namespace PizzaTownDHA.Data
                     .HasForeignKey(pi => pi.IngredientId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<KitchenLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.ToTable("kitchen_logs");
+
+                entity.Property(e => e.ProductId);
+                entity.Property(e => e.QuantityMade);
+                entity.Property(e => e.DateLogged);
+
+                entity.HasOne(kl => kl.Product)
+                    .WithMany()
+                    .HasForeignKey(kl => kl.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
         }
 
     }

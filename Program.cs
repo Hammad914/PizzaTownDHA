@@ -23,6 +23,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUnitService, UnitService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IProductService, ProductService>(); 
+builder.Services.AddScoped<IKitchenLogService, KitchenLogService>(); 
 
 var app = builder.Build();
 

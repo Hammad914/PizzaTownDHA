@@ -45,3 +45,11 @@ CREATE TABLE product_ingredients (
     IngredientId VARCHAR(36) NOT NULL,
     QuantityRequired DECIMAL(18, 4) NOT NULL DEFAULT 1.0000
 );
+
+CREATE TABLE kitchen_logs (
+    Id CHAR(36) NOT NULL PRIMARY KEY DEFAULT (UUID()),
+    ProductId CHAR(36) NOT NULL,
+    QuantityMade INT NOT NULL DEFAULT 1,
+    DateLogged DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
