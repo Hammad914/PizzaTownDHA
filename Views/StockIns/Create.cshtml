@@ -1,0 +1,176 @@
+﻿@{
+    ViewData["Title"] = "Add Stock In";
+    var ingredients = ViewData["IngredientList"] as List<PizzaTownDHA.Models.Entities.Ingredient>;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+    }
+
+    .page-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .card {
+        overflow: visible !important;
+        z-index: 1;
+    }
+
+    .item-card {
+        border: 1px solid #e5ddd4;
+        border-radius: 8px;
+        padding: 15px;
+        background: #ffffff;
+        transition: 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 100px;
+    }
+
+        .item-card:hover {
+            border-color: #b33c2e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+    .page-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+        .page-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-danger text-white border-0 py-3">
+                <h4 class="mb-0"><i class="bi bi-truck me-2"></i> Add Stock In</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Received Date</label>
+                            <!-- 🚨 max prevents future dates in UI -->
+                            <input type="date" name="receivedDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-4">
+                        <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 8px 0 0 8px;">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" id="ingredientSearch" class="form-control" placeholder="Search ingredients by name..." />
+                    </div>
+
+                    <div class="row g-3" id="ingredientGrid">
+                        @if (ingredients != null && ingredients.Count > 0)
+                        {
+                            int index = 0;
+                            @foreach (var p in ingredients)
+                            {
+                                <div class="col-md-6 col-lg-4 ingredient-wrapper" data-name="@p.Name.ToLower()">
+                                    <div class="item-card">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input ingredient-checkbox" type="checkbox"
+                                                   name="ingredientIds" value="@p.Id" id="ing_@p.Id" />
+                                            <label class="form-check-label fw-bold" for="ing_@p.Id">
+                                                @p.Name
+                                            </label>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label class="small text-muted">Quantity Received:</label>
+                                            <!-- 🚨 min="1" prevents negative numbers -->
+                                            <input type="number" step="any" min="1" class="form-control form-control-sm quantity-input"
+                                                   name="quantities" placeholder="e.g. 50" disabled />
+                                        </div>
+                                    </div>
+                                </div>
+                                index++;
+                            }
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-4" id="paginationControls"></div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Add Stock In</button>
+                        <a href="/StockIns" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Enable quantity input when checkbox is checked
+    document.querySelectorAll('.ingredient-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            let qtyInput = this.closest('.item-card').querySelector('.quantity-input');
+            if (this.checked) {
+                qtyInput.removeAttribute('disabled');
+                qtyInput.focus();
+            } else {
+                qtyInput.setAttribute('disabled', 'disabled');
+                qtyInput.value = '';
+            }
+        });
+    });
+
+    // Live Search
+    document.getElementById('ingredientSearch').addEventListener('keyup', function() {
+        let val = this.value.toLowerCase();
+        document.querySelectorAll('.ingredient-wrapper').forEach(el => {
+            el.style.display = el.dataset.name.includes(val) ? '' : 'none';
+        });
+        applyPagination();
+    });
+
+    // Pagination
+    const itemsPerPage = 10;
+    let currentPage = 1;
+
+    function applyPagination() {
+        let wrappers = document.querySelectorAll('.ingredient-wrapper:not([style*="display: none"])');
+        let totalItems = wrappers.length;
+        let totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        wrappers.forEach((el, i) => {
+            el.style.display = (i >= (currentPage - 1) * itemsPerPage && i < currentPage * itemsPerPage) ? '' : 'none';
+        });
+
+        let container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            let btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = function() { currentPage = i; applyPagination(); };
+            container.appendChild(btn);
+        }
+    }
+    applyPagination();
+</script>

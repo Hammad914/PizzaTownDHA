@@ -25,6 +25,7 @@ builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IProductService, ProductService>(); 
 builder.Services.AddScoped<IKitchenLogService, KitchenLogService>();
 builder.Services.AddScoped<IStockAuditService, StockAuditService>();
+builder.Services.AddScoped<IStockInService, StockInService>();
 
 var app = builder.Build();
 

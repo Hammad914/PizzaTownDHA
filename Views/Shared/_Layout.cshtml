@@ -44,7 +44,6 @@
                 }
 
         /* --- DROPDOWN ON HOVER (FIXED) --- */
-        /* Remove default margin top so hover doesn't flash */
         .navbar-nav .dropdown:hover .dropdown-menu {
             display: block;
             margin-top: 0;
@@ -57,7 +56,7 @@
             border-radius: 10px;
             padding: 0.5rem 0;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none; /* Hidden by default */
+            display: none;
         }
 
         .navbar-nav .dropdown-item {
@@ -71,7 +70,6 @@
                 color: #ffffff;
             }
 
-        /* Animation */
         @@keyframes fadeIn {
             from {
                 opacity: 0;
@@ -84,16 +82,23 @@
             }
         }
 
-        /* --- FOOTER --- */
+        /* --- PROFESSIONAL FOOTER --- */
         footer {
-            background-color: #f8f6f3;
-            border-top: 3px solid #b33c2e;
-            color: #222222 !important;
+            background-color: #1a1a1a; /* Dark Charcoal like navbar */
+            border-top: 3px solid #b33c2e; /* Pizza Red accent */
+            color: #f8f6f3; /* Cream text */
+            padding: 20px 0;
+            margin-top: 50px;
         }
 
-            footer .heart-icon {
+            footer a {
                 color: #b33c2e;
+                text-decoration: none;
             }
+
+                footer a:hover {
+                    color: #ffffff;
+                }
 
         /* --- TOAST NOTIFICATION --- */
         .toast-container {
@@ -171,22 +176,16 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-
-                        <!-- Home -->
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-house-fill me-1"></i> Home
                             </a>
                         </li>
-
-                        <!-- Units (Working) -->
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Units" asp-action="Index">
                                 <i class="bi bi-boxes me-1"></i> Units
                             </a>
                         </li>
-
-                        <!-- Inventory Dropdown (Removed data-bs-toggle) -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button">
                                 <i class="bi bi-box-seam me-1"></i> Inventory
@@ -198,18 +197,27 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-area="" asp-controller="Pizzas" asp-action="Index">
-                                        <i class="bi bi-pizza me-2"></i> Pizzas
+                                    <a class="dropdown-item" asp-area="" asp-controller="Products" asp-action="Index">
+                                        <i class="bi bi-pizza me-2"></i> Products
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="KitchenLogs" asp-action="Index">
+                                        <i class="bi bi-clock-history me-2"></i> Kitchen Logs
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="StockReconciliation" asp-action="Index">
+                                        <i class="bi bi-clipboard-check me-2"></i> Stock Count
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="StockReconciliation" asp-action="History">
+                                        <i class="bi bi-clock-history me-2"></i> Stock History
                                     </a>
                                 </li>
                             </ul>
-                        </li>
-
-                        <!-- Orders (Future) -->
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">
-                                <i class="bi bi-cart-fill me-1"></i> Orders
-                            </a>
                         </li>
                     </ul>
                 </div>
@@ -228,14 +236,14 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 3. FOOTER                                   -->
+    <!-- 3. PROFESSIONAL FOOTER                      -->
     <!-- ========================================== -->
-    <footer class="mt-5 py-4">
+    <footer>
         <div class="container text-center">
-            <i class="bi bi-heart-fill heart-icon me-2"></i>
-            Built with love for a special someone.
-            <br />
-            <small>&copy; @DateTime.Now.Year - PizzaTownDHA</small>
+            <p class="mb-1">
+                &copy; @DateTime.Now.Year - PizzaTownDHA. All rights reserved.
+            </p>
+            <small>Professional Restaurant Inventory & Stock Management System.</small>
         </div>
     </footer>
 
@@ -244,7 +252,6 @@
     <!-- ========================================== -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- GLOBAL TOAST LOGIC -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const successMsg = document.getElementById('tempDataSuccess')?.value;

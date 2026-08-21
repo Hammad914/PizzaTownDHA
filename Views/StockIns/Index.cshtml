@@ -1,0 +1,282 @@
+﻿@model List<PizzaTownDHA.Models.Entities.StockIn>
+@{
+    ViewData["Title"] = "Stock In History";
+    var businessDate = (DateTime)ViewBag.BusinessDate;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    body {
+        background-color: #f8f6f3;
+        color: #222222;
+    }
+
+    .page-wrapper {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 40px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .info-card {
+        flex: 0 0 220px;
+        max-width: 220px;
+        border: 1px solid #e5ddd4;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease;
+        padding: 1rem 0.5rem;
+        text-align: center;
+    }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+        }
+
+        .info-card .bi {
+            font-size: 1.6rem;
+            color: #777;
+        }
+
+        .info-card .bi-truck {
+            color: #b33c2e;
+        }
+
+        .info-card h5 {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .info-card h2 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+    .table-custom {
+        background: #ffffff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+        .table-custom thead {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+            .table-custom thead th {
+                font-size: 0.85rem;
+                padding: 1rem 1rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+        .table-custom tbody td {
+            font-size: 1rem;
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+            color: #222;
+        }
+
+    .btn-uniform {
+        height: 38px;
+        padding: 0 15px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .btn-big-red {
+        background-color: #b33c2e;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+        .btn-big-red:hover {
+            background-color: #962f23;
+        }
+
+    .page-btn {
+        border: 1px solid #ddd6ce;
+        background: #fff;
+        padding: 5px 12px;
+        border-radius: 6px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+
+        .page-btn.active {
+            background-color: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="page-wrapper">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1a1a;">
+                <i class="bi bi-truck" style="color: #b33c2e; margin-right: 0.5rem;"></i> Stock In History
+            </h2>
+            <p class="text-muted">Track all deliveries and raw material receipts for <strong>@businessDate.ToString("yyyy-MM-dd")</strong></p>
+        </div>
+
+        <div class="card-container">
+            <div class="info-card">
+                <i class="bi bi-database"></i>
+                <h5>Total Ingredients</h5>
+                <h2>@Model.Count</h2>
+            </div>
+            <div class="info-card" style="border: 1px solid #dc3545;">
+                <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545;"></i>
+                <h5>Needs Attention</h5>
+                <h2 style="color: #dc3545;">@Model.Count(x => x.QuantityReceived <= 0)</h2>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex gap-2">
+                <a href="/StockIns?date=@businessDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-uniform">Previous Day</a>
+                <a href="/StockIns?date=@businessDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-uniform">Next Day</a>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" id="datePicker" value="@businessDate.ToString("yyyy-MM-dd")" class="form-control" style="height: 38px;" />
+                <a href="#" id="goToDate" class="btn btn-dark btn-uniform">Go</a>
+                <a href="/StockIns/Create" class="btn btn-big-red btn-uniform">
+                    <i class="bi bi-plus-circle me-2"></i> Add Stock In
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive table-custom">
+            <table class="table table-hover mb-0" id="unitTable">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 5%;">#</th>
+                        <th class="ps-2">Ingredient</th>
+                        <th>Unit</th>
+                        <th class="text-center">Quantity Received</th>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Time</th>
+                        <th class="text-center pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int counter = 1;
+                        @foreach (var item in Model)
+                        {
+                            <tr class="data-row">
+                                <td class="text-center fw-bold">@counter</td>
+                                <td class="ps-2 fw-bold">@item.Ingredient?.Name</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                                        @item.Ingredient?.Unit?.UnitSymbol
+                                    </span>
+                                </td>
+                                <td class="text-center fw-bold text-success">@item.QuantityReceived.ToString("0.##")</td>
+                                <td class="text-center">@item.ReceivedDate.ToString("yyyy-MM-dd")</td>
+                                <td class="text-center">@(item.CreatedAt != null ? item.CreatedAt.ToString("hh:mm tt") : "N/A")</td>
+                                <td class="text-center pe-4">
+                                    <form id="deleteForm_@item.Id" action="/StockIns/Delete/@item.Id" method="post" style="display:inline;">
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="submitDelete('@item.Id')">
+                                            <i class="bi bi-trash3"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            counter++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-truck d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
+                                No stock received on this date.
+                                <br />
+                                <a href="/StockIns/Create" class="btn btn-big-red btn-uniform mt-3">Add Stock In</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-center mt-3" id="paginationControls"></div>
+    </div>
+</div>
+
+<input type="hidden" id="tempDataSuccess" value="@TempData["Success"]" />
+<input type="hidden" id="tempDataError" value="@TempData["Error"]" />
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const rowsPerPage = 15;
+    let currentPage = 1;
+    let allRows = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
+        applyPagination();
+    });
+
+    // Date Picker Navigation
+    document.getElementById('goToDate').addEventListener('click', function(e) {
+        e.preventDefault();
+        let selectedDate = document.getElementById('datePicker').value;
+        if (selectedDate) {
+            window.location.href = '/StockIns?date=' + selectedDate;
+        }
+    });
+
+    function applyPagination() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+        let start = (currentPage - 1) * rowsPerPage;
+        let end = start + rowsPerPage;
+        let paginatedRows = allRows.slice(start, end);
+        paginatedRows.forEach(row => { tableBody.appendChild(row); });
+        let totalPages = Math.ceil(allRows.length / rowsPerPage);
+        let container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+        for (let i = 1; i <= totalPages; i++) {
+            let btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = function() { currentPage = i; applyPagination(); };
+            container.appendChild(btn);
+        }
+    }
+
+    function submitDelete(id) {
+        if (confirm('Are you sure you want to delete this stock in record?')) {
+            document.getElementById('deleteForm_' + id).submit();
+        }
+    }
+</script>

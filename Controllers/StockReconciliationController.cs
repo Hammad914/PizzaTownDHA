@@ -8,17 +8,20 @@ namespace PizzaTownDHA.Controllers
     {
         private readonly IIngredientService ingredientService;
         private readonly IStockAuditService stockAuditService;
+        private readonly IStockInService stockInService;
         private readonly IProductService productService;
         private readonly IKitchenLogService kitchenLogService;
 
         public StockReconciliationController(
             IIngredientService _ingredientService,
             IStockAuditService _stockAuditService,
+            IStockInService _stockInService,
             IProductService _productService,
             IKitchenLogService _kitchenLogService)
         {
             ingredientService = _ingredientService;
             stockAuditService = _stockAuditService;
+            stockInService = _stockInService;
             productService = _productService;
             kitchenLogService = _kitchenLogService;
         }
@@ -28,7 +31,6 @@ namespace PizzaTownDHA.Controllers
         {
             var businessDate = date ?? GetBusinessDate(DateTime.Now);
 
-            // Prevent viewing future dates
             if (businessDate > GetBusinessDate(DateTime.Now))
             {
                 TempData["Error"] = "You cannot view or edit future stock counts.";
@@ -37,13 +39,17 @@ namespace PizzaTownDHA.Controllers
 
             var ingredients = await ingredientService.GetAllAsync();
             var todayAudits = await stockAuditService.GetByDateAsync(businessDate);
+            var todayStockIns = await stockInService.GetByDateAsync(businessDate);
+            var allProducts = await productService.GetAllAsync();
+            var allKitchenLogs = await kitchenLogService.GetAllAsync();
+
+            var todaysLogs = allKitchenLogs.Where(k => k.DateLogged.Date == businessDate.Date).ToList();
 
             var model = new List<StockReconciliationRow>();
 
             foreach (var ingredient in ingredients)
             {
                 var audit = todayAudits.FirstOrDefault(x => x.IngredientId == ingredient.Id);
-
                 decimal openingStock = 0;
 
                 if (audit != null)
@@ -59,6 +65,27 @@ namespace PizzaTownDHA.Controllers
                     }
                 }
 
+                decimal totalStockIn = todayStockIns
+                    .Where(x => x.IngredientId == ingredient.Id)
+                    .Sum(x => x.QuantityReceived);
+
+                // ✅ "Used" based on products made today × recipe quantity
+                decimal used = 0;
+                foreach (var product in allProducts)
+                {
+                    var recipe = product.ProductIngredients.FirstOrDefault(pi => pi.IngredientId == ingredient.Id);
+                    if (recipe != null)
+                    {
+                        var totalMadeToday = todaysLogs
+                            .Where(k => k.ProductId == product.Id)
+                            .Sum(k => k.QuantityMade);
+
+                        used += recipe.QuantityRequired * totalMadeToday;
+                    }
+                }
+
+                decimal theoreticalClosing = openingStock + totalStockIn - used;
+
                 model.Add(new StockReconciliationRow
                 {
                     IngredientId = ingredient.Id,
@@ -66,7 +93,11 @@ namespace PizzaTownDHA.Controllers
                     UnitSymbol = ingredient.Unit?.UnitSymbol,
                     Tolerance = ingredient.Tolerance,
                     OpeningStock = openingStock,
-                    ActualClosingStock = audit?.ActualClosingStock ?? 0
+                    TotalStockIn = totalStockIn,
+                    Used = used,
+                    TheoreticalClosing = theoreticalClosing,
+                    ActualClosingStock = audit?.ActualClosingStock ?? 0,
+                    Discrepancy = theoreticalClosing - (audit?.ActualClosingStock ?? 0)
                 });
             }
 
@@ -78,14 +109,12 @@ namespace PizzaTownDHA.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> BulkUpdate(List<Guid> ingredientIds, List<decimal> actualClosingStocks, DateTime businessDate)
         {
-            // 1. Prevent future updates
             if (businessDate > GetBusinessDate(DateTime.Now))
             {
                 TempData["Error"] = "You cannot update future stock counts.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // 2. Prevent negative stock
             for (int i = 0; i < actualClosingStocks.Count; i++)
             {
                 if (actualClosingStocks[i] < 0)
@@ -152,7 +181,6 @@ namespace PizzaTownDHA.Controllers
             return View(audits);
         }
 
-        // 5-Hour Buffer Logic
         private DateTime GetBusinessDate(DateTime input)
         {
             if (input.Hour < 5)
@@ -170,6 +198,10 @@ namespace PizzaTownDHA.Controllers
         public string? UnitSymbol { get; set; }
         public decimal Tolerance { get; set; }
         public decimal OpeningStock { get; set; }
+        public decimal TotalStockIn { get; set; }
+        public decimal Used { get; set; }
+        public decimal TheoreticalClosing { get; set; }
         public decimal ActualClosingStock { get; set; }
+        public decimal Discrepancy { get; set; }
     }
 }

@@ -14,7 +14,7 @@
     }
 
     .page-wrapper {
-        max-width: 1300px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 0 40px;
     }
@@ -69,22 +69,6 @@
             font-weight: 700;
         }
 
-    .search-box {
-        border-radius: 10px 0 0 10px;
-        border-right: none;
-        background: #ffffff;
-        border: 1px solid #ddd6ce;
-        padding: 0.6rem 1rem;
-    }
-
-    .search-btn {
-        border-radius: 0 10px 10px 0;
-        background-color: #b33c2e;
-        color: white;
-        border: 1px solid #b33c2e;
-        padding: 0 1.5rem;
-    }
-
     .table-custom {
         background: #ffffff;
         border-radius: 14px;
@@ -99,24 +83,29 @@
 
             .table-custom thead th {
                 font-size: 0.85rem;
-                padding: 1rem 1rem;
+                padding: 0.9rem 0.8rem;
                 font-weight: 600;
                 text-transform: uppercase;
+                white-space: nowrap;
             }
 
         .table-custom tbody td {
             font-size: 1rem;
-            padding: 0.8rem 1rem;
+            padding: 0.8rem 0.8rem;
             vertical-align: middle;
             color: #222;
         }
 
-    /* Larger, professional buttons */
-    .btn-lg-nav {
-        padding: 10px 24px;
-        font-size: 1rem;
-        border-radius: 10px;
+    .btn-uniform {
+        height: 34px;
+        padding: 0 12px;
+        border-radius: 8px;
         font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
     }
 
     .page-btn {
@@ -153,19 +142,18 @@
             <div class="info-card" style="border: 1px solid #dc3545;">
                 <i class="bi bi-exclamation-triangle-fill" style="color: #dc3545;"></i>
                 <h5>Needs Attention</h5>
-                <h2 style="color: #dc3545;">@Model.Count(x => x.Tolerance < 100)</h2>
+                <h2 style="color: #dc3545;">@Model.Count(x => x.Discrepancy > 0)</h2>
             </div>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <a href="/StockReconciliation?date=@businessDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-lg-nav">Previous Day</a>
-                <a href="/StockReconciliation?date=@businessDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-lg-nav">Next Day</a>
+            <div class="d-flex gap-2">
+                <a href="/StockReconciliation?date=@businessDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-uniform">Previous Day</a>
+                <a href="/StockReconciliation?date=@businessDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-uniform">Next Day</a>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <input type="date" id="datePicker" value="@businessDate.ToString("yyyy-MM-dd")" class="form-control form-control-lg" style="width: 180px;" />
-                <a href="#" id="goToDate" class="btn btn-dark btn-lg-nav">Go</a>
-                <a href="/StockReconciliation/History?date=@businessDate.ToString("yyyy-MM-dd")" class="btn btn-danger btn-lg-nav">View History</a>
+                <input type="date" id="datePicker" value="@businessDate.ToString("yyyy-MM-dd")" class="form-control" style="height: 34px;" />
+                <a href="#" id="goToDate" class="btn btn-dark btn-uniform">Go</a>
             </div>
         </div>
 
@@ -183,7 +171,7 @@
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
-                    <button type="submit" class="btn btn-danger btn-lg-nav rounded-pill px-4">Update Stock</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Update Stock</button>
                 </div>
             </div>
 
@@ -195,23 +183,53 @@
                             <th class="ps-2">Ingredient</th>
                             <th>Unit</th>
                             <th class="text-center">Opening Stock</th>
-                            <th class="text-center">Tolerance</th>
-                            <th class="text-center">Actual Closing (Input)</th>
+                            <th class="text-center">Stock In</th>
+                            <th class="text-center">Used</th>
+                            <th class="text-center">Expected Stock</th>
+                            <th class="text-center">Avail. Stock</th>
+                            <th class="text-center">Discrepancy</th>
+                            <th class="text-center">Tolerance %</th>
+                            <th class="text-center">Closing Count</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         @for (int i = 0; i < Model.Count; i++)
                         {
                             var item = Model[i];
+
+                            // Calculate Discrepancy in Percentage
+                            decimal discrepancyValue = item.Discrepancy;
+                            decimal discrepancyPercent = item.TheoreticalClosing != 0
+                            ? (discrepancyValue / item.TheoreticalClosing) * 100
+                            : 0;
+
                             <tr class="data-row">
                                 <td class="text-center fw-bold">@(i + 1)</td>
                                 <td class="ps-2 fw-bold">@item.IngredientName</td>
                                 <td>@item.UnitSymbol</td>
                                 <td class="text-center">@item.OpeningStock.ToString("0.##")</td>
+                                <td class="text-center text-success">@item.TotalStockIn.ToString("0.##")</td>
+                                <td class="text-center text-danger">@item.Used.ToString("0.##")</td>
+                                <td class="text-center fw-bold">@item.TheoreticalClosing.ToString("0.##")</td>
+                                <td class="text-center fw-bold text-primary">@item.ActualClosingStock.ToString("0.##")</td>
+                                <td class="text-center">
+                                    @if (discrepancyValue > 0)
+                                    {
+                                        <span class="text-danger fw-bold">+@discrepancyValue.ToString("0.##") (@discrepancyPercent.ToString("0.##")%)</span>
+                                    }
+                                    else if (discrepancyValue < 0)
+                                    {
+                                        <span class="text-success">@discrepancyValue.ToString("0.##") (@discrepancyPercent.ToString("0.##")%)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary">0 (0%)</span>
+                                    }
+                                </td>
                                 <td class="text-center">@item.Tolerance.ToString("0.##")%</td>
                                 <td class="text-center">
                                     <input type="hidden" name="ingredientIds" value="@item.IngredientId" />
-                                    <input type="number" step="any" class="form-control form-control-sm" name="actualClosingStocks" value="@item.ActualClosingStock" />
+                                    <input type="number" step="any" class="form-control form-control-sm" name="actualClosingStocks" placeholder="Count" />
                                 </td>
                             </tr>
                         }
@@ -239,6 +257,7 @@
         applyPagination();
     });
 
+    // Date Picker Navigation
     document.getElementById('goToDate').addEventListener('click', function(e) {
         e.preventDefault();
         let selectedDate = document.getElementById('datePicker').value;
@@ -247,6 +266,7 @@
         }
     });
 
+    // Live Search
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let searchValue = this.value.toLowerCase();
         let filteredRows = allRows.filter(row => {
@@ -288,9 +308,11 @@
         }
     }
 
+    // JavaScript to manually submit BulkUpdate (Prevents page reload)
     document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
         e.preventDefault();
         let formData = new FormData(this);
+
         fetch('/StockReconciliation/BulkUpdate', {
             method: 'POST',
             body: formData
