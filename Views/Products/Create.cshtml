@@ -1,7 +1,7 @@
-﻿@model PizzaTownDHA.Models.Entities.Product
-@{
+﻿@{
     ViewData["Title"] = "Create Product";
     var ingredients = ViewData["IngredientList"] as List<PizzaTownDHA.Models.Entities.Ingredient>;
+    var unitList = ViewData["UnitList"] as List<PizzaTownDHA.Models.Entities.Unit>;
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -25,34 +25,162 @@
 
     .ingredient-item {
         border: 1px solid #e5ddd4;
-        border-radius: 8px;
-        padding: 15px;
+        border-radius: 12px;
+        padding: 15px 18px;
         background: #ffffff;
-        transition: 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        min-height: 120px;
+        gap: 12px;
+        transition: all 0.2s ease;
+        height: 100%;
     }
 
-        .ingredient-item:hover {
-            border-color: #b33c2e;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+    .ingredient-item:hover {
+        border-color: #dc3545;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.08);
+    }
+
+    .ingredient-item .form-check {
+        padding-left: 28px;
+        margin-bottom: 0;
+    }
+
+    .ingredient-item .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin-top: 2px;
+        cursor: pointer;
+    }
+
+    .ingredient-item .form-check-input:checked {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .ingredient-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1a1a1a;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .ingredient-unit-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 400;
+    }
+
+    .qty-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .qty-row input {
+        flex: 1;
+        min-width: 0;
+        padding: 8px 12px;
+        font-size: 1rem;
+        height: 40px;
+        border-radius: 6px 0 0 6px;
+        border: 1px solid #ced4da;
+    }
+
+    .qty-row input:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    }
+
+    .qty-row input:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+    .unit-dropdown {
+        width: 60px;
+        flex-shrink: 0;
+        border-radius: 0 6px 6px 0;
+        padding: 8px 10px;
+        font-size: 1rem;
+        height: 40px;
+        background-color: #f8f6f3;
+        border: 1px solid #ced4da;
+        border-left: none;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .unit-dropdown:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+    .unit-dropdown:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    }
+
+    .qty-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
 
     .page-btn {
-        border: 1px solid #ddd6ce;
-        background: #fff;
+        margin: 0 5px;
         padding: 5px 12px;
+        border: 1px solid #ddd6ce;
         border-radius: 6px;
-        margin: 0 2px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
     }
 
-        .page-btn.active {
-            background-color: #1a1a1a;
-            color: white;
-            border-color: #1a1a1a;
-        }
+    .page-btn.active {
+        background: #dc3545;
+        color: #fff;
+        border-color: #dc3545;
+    }
+
+    .page-btn:hover:not(.active) {
+        background: #f8f6f3;
+    }
+
+    .page-btn.active:hover {
+        background: #c82333;
+    }
+
+    .search-box {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #ddd6ce;
+        font-size: 1rem;
+    }
+
+    .search-box:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .form-control-lg {
+        font-size: 1.1rem;
+        padding: 12px 15px;
+    }
+
+    /* Make cards 20px wider */
+    .col-md-6.col-lg-4 {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
 </style>
 
 <div class="container-fluid py-5">
@@ -62,60 +190,89 @@
                 <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i> Create Product</h4>
             </div>
             <div class="card-body p-4">
-                <!-- 🛑 FIX: enctype added to guarantee binding -->
-                <form asp-action="Create" method="post" id="createProductForm" enctype="multipart/form-data">
+                <form action="/Products/Create" method="post">
+                    <!-- Product Name -->
                     <div class="row g-3 mb-4">
                         <div class="col-md-12">
-                            <label asp-for="Name" class="form-label fw-bold">Product Name</label>
-                            <input asp-for="Name" name="Name" class="form-control" placeholder="e.g. Margherita Pizza" />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
+                            <label class="form-label fw-bold">Product Name <span class="text-danger">*</span></label>
+                            <input type="text" name="product.Name" class="form-control form-control-lg" placeholder="e.g. Margherita Pizza" required />
                         </div>
                     </div>
 
                     <hr />
-                    <h5 class="mb-3 fw-bold">Select Ingredients & Quantities</h5>
-                    <p class="text-muted small">Check the ingredients needed and enter the required quantity.</p>
+                    <h5 class="mb-2 fw-bold"><i class="bi bi-list-check me-2"></i>Select Ingredients</h5>
+                    <p class="text-muted small mb-4">Check the ingredients you need, enter the quantity, and select the unit.</p>
 
+                    <!-- Search Box -->
                     <div class="input-group mb-4">
                         <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 8px 0 0 8px;">
                             <i class="bi bi-search text-muted"></i>
                         </span>
-                        <input type="text" id="ingredientSearch" class="form-control" placeholder="Search ingredients by name..." />
+                        <input type="text" id="ingredientSearch" class="form-control search-box" placeholder="Search ingredients by name..." />
                     </div>
 
+                    <!-- Ingredients Grid -->
                     <div class="row g-3" id="ingredientGrid">
                         @if (ingredients != null && ingredients.Count > 0)
                         {
-                            int index = 0;
                             @foreach (var ingredient in ingredients)
                             {
                                 <div class="col-md-6 col-lg-4 ingredient-wrapper" data-name="@ingredient.Name.ToLower()">
                                     <div class="ingredient-item">
-                                        <div class="form-check mb-2">
+                                        <!-- Checkbox + Ingredient Name -->
+                                        <div class="form-check">
                                             <input class="form-check-input ingredient-checkbox" type="checkbox"
-                                                   name="selectedIngredientIds[@index]" value="@ingredient.Id" id="ing_@ingredient.Id" />
-                                            <label class="form-check-label fw-bold" for="ing_@ingredient.Id">
+                                                   name="selectedIngredientIds" value="@ingredient.Id" id="ing_@ingredient.Id" />
+                                            <label class="form-check-label ingredient-name" for="ing_@ingredient.Id">
                                                 @ingredient.Name
-                                                <span class="text-muted small fw-normal">(@ingredient.Unit?.UnitSymbol)</span>
+                                                <span class="ingredient-unit-label">(@ingredient.Unit?.UnitSymbol)</span>
                                             </label>
                                         </div>
-                                        <div class="mt-2">
-                                            <label class="small text-muted">Quantity Required:</label>
-                                            <input type="number" step="any" class="form-control form-control-sm quantity-input"
-                                                   name="quantities[@index]" placeholder="e.g. 250" disabled />
+
+                                        <!-- Quantity Input + Unit Dropdown -->
+                                        <div>
+                                            <div class="qty-label">Quantity Required</div>
+                                            <div class="qty-row">
+                                                <input type="number" step="any" class="form-control quantity-input"
+                                                       name="quantities" placeholder="0.00" disabled />
+                                                <select class="form-select unit-dropdown" name="unitSymbols" disabled>
+                                                    @if (unitList != null)
+                                                    {
+                                                        var categoryUnits = unitList.Where(u => u.Category == ingredient.Unit.Category && !u.IsDeleted).ToList();
+                                                        foreach (var unit in categoryUnits)
+                                                        {
+                                                            var selected = (ingredient.Unit.UnitSymbol == unit.UnitSymbol) ? "selected" : "";
+                                                            <option value="@unit.UnitSymbol" @selected>@unit.UnitSymbol</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                index++;
                             }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center text-muted py-5">
+                                <i class="bi bi-exclamation-circle fs-2 d-block mb-3"></i>
+                                <p class="mb-0">No ingredients available.</p>
+                                <small>Please add ingredients first before creating a product.</small>
+                            </div>
                         }
                     </div>
 
+                    <!-- Pagination -->
                     <div class="d-flex justify-content-center mt-4" id="paginationControls"></div>
 
-                    <div class="mt-4 d-flex gap-2">
-                        <button type="submit" class="btn btn-danger rounded-pill px-4">Create Product</button>
-                        <a href="/Products" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    <!-- Submit Buttons -->
+                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">
+                            <i class="bi bi-check-circle me-1"></i> Create Product
+                        </button>
+                        <a href="/Products" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
                     </div>
                 </form>
             </div>
@@ -127,25 +284,32 @@
 <input type="hidden" id="tempDataError" value="@TempData["Error"]" />
 
 <script>
-    // Enable/Disable quantity inputs correctly
+    // Toggle quantity/unit inputs based on checkbox
     document.querySelectorAll('.ingredient-checkbox').forEach(cb => {
         cb.addEventListener('change', function() {
-            let qtyInput = this.closest('.ingredient-item').querySelector('.quantity-input');
+            let ingredientItem = this.closest('.ingredient-item');
+            let qtyInput = ingredientItem.querySelector('.quantity-input');
+            let unitDropdown = ingredientItem.querySelector('.unit-dropdown');
+            
             if (this.checked) {
                 qtyInput.removeAttribute('disabled');
+                unitDropdown.removeAttribute('disabled');
                 qtyInput.focus();
             } else {
                 qtyInput.setAttribute('disabled', 'disabled');
+                unitDropdown.setAttribute('disabled', 'disabled');
                 qtyInput.value = '';
+                unitDropdown.value = '';
             }
         });
     });
 
-    // Live Search
+    // Search filter
     document.getElementById('ingredientSearch').addEventListener('keyup', function() {
-        let val = this.value.toLowerCase();
+        let val = this.value.toLowerCase().trim();
         document.querySelectorAll('.ingredient-wrapper').forEach(el => {
-            el.style.display = el.dataset.name.includes(val) ? '' : 'none';
+            let name = el.dataset.name || '';
+            el.style.display = name.includes(val) ? '' : 'none';
         });
         applyPagination();
     });
@@ -159,21 +323,67 @@
         let totalItems = wrappers.length;
         let totalPages = Math.ceil(totalItems / itemsPerPage);
 
+        if (currentPage > totalPages) currentPage = 1;
+
         wrappers.forEach((el, i) => {
-            el.style.display = (i >= (currentPage - 1) * itemsPerPage && i < currentPage * itemsPerPage) ? '' : 'none';
+            el.style.display = (i >= (currentPage - 1) * itemsPerPage && i < currentPage * itemsPerPage) 
+                ? '' : 'none';
         });
 
         let container = document.getElementById('paginationControls');
         container.innerHTML = '';
+        
         if (totalPages <= 1) return;
 
+        // Previous
+        let prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '&laquo;';
+        prevBtn.onclick = function() {
+            if (currentPage > 1) {
+                currentPage--;
+                applyPagination();
+            }
+        };
+        container.appendChild(prevBtn);
+
+        // Pages
         for (let i = 1; i <= totalPages; i++) {
             let btn = document.createElement('button');
             btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
             btn.innerText = i;
-            btn.onclick = function() { currentPage = i; applyPagination(); };
+            btn.onclick = function() { 
+                currentPage = i; 
+                applyPagination(); 
+            };
             container.appendChild(btn);
         }
+
+        // Next
+        let nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '&raquo;';
+        nextBtn.onclick = function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyPagination();
+            }
+        };
+        container.appendChild(nextBtn);
     }
+
     applyPagination();
+
+    // Display messages
+    (function() {
+        let success = document.getElementById('tempDataSuccess').value;
+        let error = document.getElementById('tempDataError').value;
+        
+        if (success) {
+            alert('✅ ' + success);
+        }
+        if (error) {
+            alert('❌ ' + error);
+        }
+    })();
 </script>

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PizzaTownDHA.Data;
 using PizzaTownDHA.Interfaces;
 using PizzaTownDHA.Services;
+using PizzaTownDHA.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IKitchenLogService, KitchenLogService>();
 builder.Services.AddScoped<IStockAuditService, StockAuditService>();
 builder.Services.AddScoped<IStockInService, StockInService>();
+builder.Services.AddScoped<IUnitConvertorService, UnitConverterService>();
 
 var app = builder.Build();
 

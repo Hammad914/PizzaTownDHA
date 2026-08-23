@@ -28,6 +28,8 @@ namespace PizzaTownDHA.Controllers
             return View();
         }
 
+     
+
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create(Unit unit)
@@ -131,7 +133,7 @@ namespace PizzaTownDHA.Controllers
                     TempData["Error"] = "Unit not found or could not be deleted.";
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 TempData["Error"] = "An error occurred while deleting.";
             }

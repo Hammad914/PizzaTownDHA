@@ -5,7 +5,6 @@ namespace PizzaTownDHA.Models.Entities
     public class ProductIngredient
     {
         public Guid Id { get; set; }
-
         public Guid ProductId { get; set; }
         public Guid IngredientId { get; set; }
 

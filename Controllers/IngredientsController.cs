@@ -138,7 +138,7 @@ namespace PizzaTownDHA.Controllers
                     TempData["Error"] = "Ingredient not found or could not be deleted.";
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 TempData["Error"] = "An error occurred while deleting the ingredient.";
             }

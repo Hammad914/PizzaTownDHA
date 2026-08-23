@@ -9,11 +9,12 @@ namespace PizzaTownDHA.Controllers
     {
         private readonly IProductService productService;
         private readonly IIngredientService ingredientService;
-
-        public ProductsController(IProductService _productService, IIngredientService _ingredientService)
+        private readonly IUnitService unitService;
+        public ProductsController(IProductService _productService, IIngredientService _ingredientService, IUnitService _unitService)
         {
             productService = _productService;
             ingredientService = _ingredientService;
+            unitService = _unitService;
         }
 
         [HttpGet]
@@ -27,13 +28,15 @@ namespace PizzaTownDHA.Controllers
         public async Task<IActionResult> Create()
         {
             var ingredients = await ingredientService.GetAllAsync();
+            var units = await unitService.GetAllAsync();
             ViewData["IngredientList"] = ingredients;
+            ViewData["UnitList"] = units;
             return View();
         }
 
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Create(Product product, List<Guid> selectedIngredientIds, List<decimal> quantities)
+        public async Task<IActionResult> Create(Product product, List<Guid> selectedIngredientIds, List<decimal> quantities, List<string>unitSymbols)
         {
             if (await productService.ProductNameExistsAsync(product.Name))
             {
@@ -51,7 +54,7 @@ namespace PizzaTownDHA.Controllers
             {
                 try
                 {
-                    await productService.RegisterProductAsync(product, selectedIngredientIds, quantities);
+                    await productService.RegisterProductAsync(product, selectedIngredientIds, quantities, unitSymbols);
                     TempData["Success"] = "Product created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -79,13 +82,15 @@ namespace PizzaTownDHA.Controllers
                 return NotFound();
 
             var ingredients = await ingredientService.GetAllAsync();
+            var units = await unitService.GetAllAsync();
             ViewData["IngredientList"] = ingredients;
+            ViewData["UynitList"] = units;
             return View(product);
         }
 
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Edit(Guid Id, Product product, List<Guid> selectedIngredientIds, List<decimal> quantities)
+        public async Task<IActionResult> Edit(Guid Id, Product product, List<Guid> selectedIngredientIds, List<decimal> quantities, List<string> unitSymbols)
         {
             if (Id != product.Id)
                 return NotFound();
@@ -106,7 +111,7 @@ namespace PizzaTownDHA.Controllers
             {
                 try
                 {
-                    await productService.UpdateProductAsync(product, selectedIngredientIds, quantities);
+                    await productService.UpdateProductAsync(product, selectedIngredientIds, quantities,unitSymbols);
                     TempData["Success"] = "Product updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -142,7 +147,7 @@ namespace PizzaTownDHA.Controllers
                     TempData["Error"] = "Product not found or could not be deleted.";
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 TempData["Error"] = "An error occurred while deleting the product.";
             }

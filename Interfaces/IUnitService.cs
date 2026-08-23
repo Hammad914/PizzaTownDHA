@@ -8,6 +8,7 @@ namespace PizzaTownDHA.Interfaces
         Task<Unit?> GetByIdAsync(Guid id);
         Task<Unit> RegisterUnitAsync(Unit unit);
         Task<Unit> UpdateUnitAsync(Unit unit);
+        Task<Unit?> GetUnitBySymbolAsync(string unitSymbol);
         Task<bool> DeleteUnitAsync(Guid id);
 
         Task<bool> UnitSymbolExistsAsync(string unitSymbol);

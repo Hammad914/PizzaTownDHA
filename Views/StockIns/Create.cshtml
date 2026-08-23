@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Add Stock In";
     var ingredients = ViewData["IngredientList"] as List<PizzaTownDHA.Models.Entities.Ingredient>;
+    var units = ViewData["UnitList"] as List<PizzaTownDHA.Models.Entities.Unit>;
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -31,7 +32,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 100px;
+        min-height: 130px;
     }
 
         .item-card:hover {
@@ -96,16 +97,25 @@
                                     <div class="item-card">
                                         <div class="form-check mb-2">
                                             <input class="form-check-input ingredient-checkbox" type="checkbox"
-                                                   name="ingredientIds" value="@p.Id" id="ing_@p.Id" />
+                                                   name="ingredientIds" value="@p.Id" id="ing_@p.Id"
+                                                   data-category="@p.Unit?.Category" data-base-symbol="@p.Unit?.UnitSymbol" />
                                             <label class="form-check-label fw-bold" for="ing_@p.Id">
                                                 @p.Name
                                                 <span class="unit-badge">@p.Unit?.UnitSymbol</span>
                                             </label>
                                         </div>
+
                                         <div class="mt-2">
-                                            <label class="small text-muted">Quantity Received (@p.Unit?.UnitSymbol):</label>
-                                            <input type="number" step="any" min="1" class="form-control form-control-sm quantity-input"
-                                                   name="quantities" placeholder="e.g. 50" disabled />
+                                            <label class="small text-muted">Quantity Received:</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" step="any" min="1" class="form-control quantity-input"
+                                                       name="quantities" placeholder="e.g. 50" disabled />
+
+                                                <select class="form-select unit-dropdown" name="selectedUnitIds" disabled style="max-width: 100px;">
+                                                    <option value="">Unit</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-text small text-muted preview-text mt-1">0 @p.Unit?.UnitSymbol</div>
                                         </div>
                                     </div>
                                 </div>
@@ -131,27 +141,95 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    // CRITICAL FIX: Use camelCase explicitly to match JSON output
+    const allUnits = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(units));
+    console.log('All Units:', allUnits); // Log to browser console for debugging
+
     // Enable quantity input when checkbox is checked
     document.querySelectorAll('.ingredient-checkbox').forEach(cb => {
-        cb.addEventListener('change', function() {
-            let qtyInput = this.closest('.item-card').querySelector('.quantity-input');
-            if (this.checked) {
-                qtyInput.removeAttribute('disabled');
-                qtyInput.focus();
-            } else {
-                qtyInput.setAttribute('disabled', 'disabled');
-                qtyInput.value = '';
-            }
-        });
+    cb.addEventListener('change', function() {
+    let itemCard = this.closest('.item-card');
+    let qtyInput = itemCard.querySelector('.quantity-input');
+    let unitSelect = itemCard.querySelector('.unit-dropdown');
+
+    if (this.checked) {
+    qtyInput.removeAttribute('disabled');
+    unitSelect.removeAttribute('disabled');
+
+    let category = this.dataset.category;
+    populateUnits(unitSelect, category, this.dataset.baseSymbol);
+
+    qtyInput.focus();
+    } else {
+    qtyInput.setAttribute('disabled', 'disabled');
+    unitSelect.setAttribute('disabled', 'disabled');
+    qtyInput.value = '';
+    unitSelect.innerHTML = '<option value="">Unit</option>';
+    }
+
+    updatePreview(itemCard);
+    });
+    });
+
+    // Function to populate unit dropdown
+    function populateUnits(selectElement, category, baseSymbol) {
+    selectElement.innerHTML = '<option value="">Unit</option>';
+
+    // Filter units by the same category
+    // CRITICAL FIX: Match exact property names from JSON (PascalCase in C# -> likely camelCase in JS)
+    // If you have "Category", "UnitSymbol", "ConversionFactor" in C#, JSON will have "category", "unitSymbol", "conversionFactor"
+    // If you have "category", "unitSymbol", "conversionFactor" in C#, JSON will have the same
+    let filteredUnits = allUnits.filter(u =>
+    (u.category || u.Category) === category &&
+    !(u.isDeleted || u.IsDeleted)
+    );
+
+    if (filteredUnits.length === 0) {
+    console.log('No units found for category:', category);
+    }
+
+    filteredUnits.forEach(unit => {
+    let option = document.createElement('option');
+    option.value = unit.id || unit.Id;
+    option.text = unit.unitSymbol || unit.UnitSymbol;
+    option.dataset.factor = unit.conversionFactor || unit.ConversionFactor;
+    selectElement.appendChild(option);
+    });
+
+    // Pre-select the base unit (e.g., kg)
+    let baseOption = Array.from(selectElement.options).find(o => o.text === baseSymbol);
+    if (baseOption) {
+    selectElement.value = baseOption.value;
+    }
+    }
+
+    // Function to update the live preview
+    function updatePreview(itemCard) {
+    let qty = parseFloat(itemCard.querySelector('.quantity-input').value) || 0;
+    let unitSelect = itemCard.querySelector('.unit-dropdown');
+    let factor = parseFloat(unitSelect.options[unitSelect.selectedIndex]?.dataset.factor) || 1;
+    let baseSymbol = itemCard.querySelector('.ingredient-checkbox').dataset.baseSymbol;
+
+    let baseValue = qty * factor;
+    itemCard.querySelector('.preview-text').innerText = `${baseValue} ${baseSymbol}`;
+    }
+
+    // Attach events
+    document.querySelectorAll('.ingredient-wrapper').forEach(wrapper => {
+    let qtyInput = wrapper.querySelector('.quantity-input');
+    let unitSelect = wrapper.querySelector('.unit-dropdown');
+
+    qtyInput.addEventListener('input', () => updatePreview(wrapper));
+    unitSelect.addEventListener('change', () => updatePreview(wrapper));
     });
 
     // Live Search
     document.getElementById('ingredientSearch').addEventListener('keyup', function() {
-        let val = this.value.toLowerCase();
-        document.querySelectorAll('.ingredient-wrapper').forEach(el => {
-            el.style.display = el.dataset.name.includes(val) ? '' : 'none';
-        });
-        applyPagination();
+    let val = this.value.toLowerCase();
+    document.querySelectorAll('.ingredient-wrapper').forEach(el => {
+    el.style.display = el.dataset.name.includes(val) ? '' : 'none';
+    });
+    applyPagination();
     });
 
     // Pagination
@@ -159,25 +237,25 @@
     let currentPage = 1;
 
     function applyPagination() {
-        let wrappers = document.querySelectorAll('.ingredient-wrapper:not([style*="display: none"])');
-        let totalItems = wrappers.length;
-        let totalPages = Math.ceil(totalItems / itemsPerPage);
+    let wrappers = document.querySelectorAll('.ingredient-wrapper:not([style*="display: none"])');
+    let totalItems = wrappers.length;
+    let totalPages = Math.ceil(totalItems / itemsPerPage);
 
-        wrappers.forEach((el, i) => {
-            el.style.display = (i >= (currentPage - 1) * itemsPerPage && i < currentPage * itemsPerPage) ? '' : 'none';
-        });
+    wrappers.forEach((el, i) => {
+    el.style.display = (i >= (currentPage - 1) * itemsPerPage && i < currentPage * itemsPerPage) ? '' : 'none';
+    });
 
-        let container = document.getElementById('paginationControls');
-        container.innerHTML = '';
-        if (totalPages <= 1) return;
+    let container = document.getElementById('paginationControls');
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
-            let btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = function() { currentPage = i; applyPagination(); };
-            container.appendChild(btn);
-        }
+    for (let i = 1; i <= totalPages; i++) {
+    let btn = document.createElement('button');
+    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+    btn.innerText = i;
+    btn.onclick = function() { currentPage = i; applyPagination(); };
+    container.appendChild(btn);
+    }
     }
     applyPagination();
 </script>

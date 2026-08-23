@@ -13,6 +13,13 @@ namespace PizzaTownDHA.Services
             db = _db;
         }
 
+        public async Task<Unit?> GetUnitBySymbolAsync(string unitSymbol)
+        {
+            var response = await db.Units.FirstOrDefaultAsync(u => u.UnitSymbol == unitSymbol && !u.IsDeleted);
+            return response;
+
+        }
+
         public async Task<List<Unit>> GetAllAsync()
         {
             var response = await db.Units
