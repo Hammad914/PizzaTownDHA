@@ -169,6 +169,19 @@
             color: white;
             border-color: #1a1a1a;
         }
+
+    .search-box {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #ddd6ce;
+        width: 100%;
+        background: #ffffff;
+    }
+
+        .search-box:focus {
+            border-color: #b33c2e;
+            box-shadow: 0 0 0 0.2rem rgba(179, 60, 46, 0.15);
+        }
 </style>
 
 <div class="container-fluid py-5">
@@ -207,6 +220,14 @@
             </div>
         </div>
 
+        <!-- NEW LIVE SEARCH BAR -->
+        <div class="input-group mb-4">
+            <span class="input-group-text bg-white border-end-0" style="border: 1px solid #ddd6ce; border-right: none; border-radius: 8px 0 0 8px;">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="globalSearch" class="form-control search-box" placeholder="Search by Ingredient, Unit, Quantity, Date, or Time..." />
+        </div>
+
         <div class="table-responsive table-custom">
             <table class="table table-hover mb-0" id="unitTable">
                 <thead>
@@ -228,7 +249,13 @@
                         {
                             var deleteModalId = $"deleteModal_{item.Id}";
 
-                            <tr class="data-row">
+                            <tr class="data-row"
+                                data-ingredient="@item.Ingredient?.Name.ToLower()"
+                                data-unit="@item.Ingredient?.Unit?.UnitSymbol.ToLower()"
+                                data-quantity="@item.QuantityReceived"
+                                data-date="@item.ReceivedDate.ToString("yyyy-MM-dd")"
+                                data-time="@item.CreatedAt.ToString("hh:mm tt")">
+
                                 <td class="ps-4 fw-bold">@counter</td>
                                 <td class="fw-bold">@item.Ingredient?.Name</td>
                                 <td>@item.Ingredient?.Unit?.UnitSymbol</td>
@@ -301,43 +328,75 @@
     const rowsPerPage = 15;
     let currentPage = 1;
     let allRows = [];
+    let filteredRows = [];
 
     document.addEventListener('DOMContentLoaded', function() {
-        allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
-        applyPagination();
+    allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
+    filteredRows = allRows;
+    applyPagination();
     });
 
     // Date Picker Navigation
     document.getElementById('goToDate').addEventListener('click', function(e) {
-        e.preventDefault();
-        let selectedDate = document.getElementById('datePicker').value;
-        if (selectedDate) {
-            window.location.href = '/StockIns?date=' + selectedDate;
-        }
+    e.preventDefault();
+    let selectedDate = document.getElementById('datePicker').value;
+    if (selectedDate) {
+    window.location.href = '/StockIns?date=' + selectedDate;
+    }
+    });
+
+    // LIVE SEARCH FUNCTION
+    document.getElementById('globalSearch').addEventListener('input', function() {
+    let query = this.value.toLowerCase().trim();
+
+    // Filter based on data attributes
+    filteredRows = allRows.filter(row => {
+    let ingredient = row.dataset.ingredient || '';
+    let unit = row.dataset.unit || '';
+    let quantity = row.dataset.quantity || '';
+    let date = row.dataset.date || '';
+    let time = row.dataset.time || '';
+
+    // Match if query is in ANY of the fields
+    return ingredient.includes(query) ||
+    unit.includes(query) ||
+    quantity.includes(query) ||
+    date.includes(query) ||
+    time.includes(query);
+    });
+
+    // Reset to page 1 on new search
+    currentPage = 1;
+    applyPagination();
     });
 
     function applyPagination() {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
-        let start = (currentPage - 1) * rowsPerPage;
-        let end = start + rowsPerPage;
-        let paginatedRows = allRows.slice(start, end);
-        paginatedRows.forEach(row => { tableBody.appendChild(row); });
-        let totalPages = Math.ceil(allRows.length / rowsPerPage);
-        let container = document.getElementById('paginationControls');
-        container.innerHTML = '';
-        if (totalPages <= 1) return;
-        for (let i = 1; i <= totalPages; i++) {
-            let btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = function() { currentPage = i; applyPagination(); };
-            container.appendChild(btn);
-        }
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+
+    let start = (currentPage - 1) * rowsPerPage;
+    let end = start + rowsPerPage;
+    let paginatedRows = filteredRows.slice(start, end);
+
+    paginatedRows.forEach(row => { tableBody.appendChild(row); });
+
+    let totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+    let container = document.getElementById('paginationControls');
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+    let btn = document.createElement('button');
+    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+    btn.innerText = i;
+    btn.onclick = function() { currentPage = i; applyPagination(); };
+    container.appendChild(btn);
+    }
     }
 
     // ✅ NO confirm() - Just submit the form directly
     function submitDelete(id) {
-        document.getElementById('deleteForm_' + id).submit();
+    document.getElementById('deleteForm_' + id).submit();
     }
 </script>
