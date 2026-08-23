@@ -5,8 +5,8 @@ using PizzaTownDHA.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//var connectionString = builder.Configuration.GetConnectionString("Pizza_Town_DHA");
-var connectionString = builder.Configuration.GetConnectionString("Pizza Town DHA");
+var connectionString = builder.Configuration.GetConnectionString("Pizza_Town_DHA");
+//var connectionString = builder.Configuration.GetConnectionString("Pizza Town DHA");
 
 if (string.IsNullOrEmpty(connectionString))
 {

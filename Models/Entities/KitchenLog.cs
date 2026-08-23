@@ -8,8 +8,6 @@ namespace PizzaTownDHA.Models.Entities
         public Guid ProductId { get; set; }
         public int QuantityMade { get; set; }
         public DateTime DateLogged { get; set; }
-
-        // Navigation property
         public virtual Product Product { get; set; } = null!;
     }
 }

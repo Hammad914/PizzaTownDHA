@@ -27,7 +27,6 @@ namespace PizzaTownDHA.Services
                 .Include(kl => kl.Product)
                 .FirstOrDefaultAsync(kl => kl.Id == id);
         }
-
         public async Task<List<KitchenLog>> LogMultiAsync(List<Guid> productIds, List<int> quantities)
         {
             var logs = new List<KitchenLog>();

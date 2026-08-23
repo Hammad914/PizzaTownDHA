@@ -41,7 +41,7 @@ namespace PizzaTownDHA.Services
             if (stockAudit.Id == Guid.Empty)
                 stockAudit.Id = Guid.NewGuid();
 
-            stockAudit.CreatedAt = DateTime.UtcNow;
+            stockAudit.CreatedAt = DateTime.Now;
             stockAudit.IsDeleted = false;
             stockAudit.CreatedBy = "System";
 
@@ -60,7 +60,7 @@ namespace PizzaTownDHA.Services
 
             existing.OpeningStock = stockAudit.OpeningStock;
             existing.ActualClosingStock = stockAudit.ActualClosingStock;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
 
             db.StockAudits.Update(existing);
             await db.SaveChangesAsync();

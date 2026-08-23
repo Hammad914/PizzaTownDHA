@@ -35,7 +35,6 @@ namespace PizzaTownDHA.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Create(Ingredient ingredient)
         {
-            // Check for duplicate
             if (!string.IsNullOrWhiteSpace(ingredient.Name))
             {
                 if (await ingredientService.IngredientNameExistsAsync(ingredient.Name))
@@ -45,7 +44,6 @@ namespace PizzaTownDHA.Controllers
                 }
             }
 
-            // Check tolerance
             if (ingredient.Tolerance > 75)
             {
                 TempData["Error"] = "Tolerance cannot be more than 75%.";
@@ -94,7 +92,6 @@ namespace PizzaTownDHA.Controllers
                 }
             }
 
-            // 2. Check Tolerance > 75
             if (ingredient.Tolerance > 75)
             {
                 TempData["Error"] = "Tolerance cannot be more than 75%. Please enter a value between 0 and 75.";

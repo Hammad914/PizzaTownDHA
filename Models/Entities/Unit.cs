@@ -13,7 +13,7 @@
         public decimal ConversionFactor { get; set; }
         public int DisplayOrder { get; set; }
         public string CreatedBy { get; set; } = "System";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string? UpdatedBy { get; set; } 
         public DateTime? UpdatedAt { get; set; }
         public bool IsDeleted { get; set; } = false;

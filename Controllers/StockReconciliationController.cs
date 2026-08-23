@@ -29,9 +29,10 @@ namespace PizzaTownDHA.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(DateTime? date)
         {
-            var businessDate = date ?? GetBusinessDate(DateTime.Now);
+            // ✅ Use Today's Date (Pakistan Time)
+            var businessDate = date ?? DateTime.Now.Date;
 
-            if (businessDate > GetBusinessDate(DateTime.Now))
+            if (businessDate > DateTime.Now.Date)
             {
                 TempData["Error"] = "You cannot view or edit future stock counts.";
                 return RedirectToAction(nameof(Index));
@@ -85,15 +86,13 @@ namespace PizzaTownDHA.Controllers
 
                 decimal theoreticalClosing = openingStock + totalStockIn - used;
 
-                // ✅ Calculate the raw discrepancy
+                // ✅ Raw discrepancy = Theoretical - ActualClosingStock (0 if no audit yet)
                 decimal rawDiscrepancy = theoreticalClosing - (audit?.ActualClosingStock ?? 0);
 
-                // ✅ Calculate the discrepancy percentage
                 decimal discrepancyPercentage = theoreticalClosing != 0
                     ? (Math.Abs(rawDiscrepancy) / theoreticalClosing) * 100
                     : 0;
 
-                // ✅ ONLY SHOW DISCREPANCY IF IT EXCEEDS THE TOLERANCE
                 decimal displayDiscrepancy = 0;
                 if (discrepancyPercentage > ingredient.Tolerance)
                 {
@@ -123,7 +122,7 @@ namespace PizzaTownDHA.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> BulkUpdate(List<Guid> ingredientIds, List<decimal> actualClosingStocks, DateTime businessDate)
         {
-            if (businessDate > GetBusinessDate(DateTime.Now))
+            if (businessDate > DateTime.Now.Date)
             {
                 TempData["Error"] = "You cannot update future stock counts.";
                 return RedirectToAction(nameof(Index));
@@ -170,7 +169,7 @@ namespace PizzaTownDHA.Controllers
                     else
                     {
                         existingAudit.ActualClosingStock = closingStock;
-                        existingAudit.UpdatedAt = DateTime.UtcNow;
+                        existingAudit.UpdatedAt = DateTime.Now;
                         await stockAuditService.UpdateStockAuditAsync(existingAudit);
                     }
                 }
@@ -188,20 +187,11 @@ namespace PizzaTownDHA.Controllers
         [HttpGet]
         public async Task<IActionResult> History(DateTime? date)
         {
-            var businessDate = date ?? GetBusinessDate(DateTime.Now);
+            var businessDate = date ?? DateTime.Now.Date;
             var audits = await stockAuditService.GetByDateAsync(businessDate);
 
             ViewBag.BusinessDate = businessDate;
             return View(audits);
-        }
-
-        private DateTime GetBusinessDate(DateTime input)
-        {
-            if (input.Hour < 5)
-            {
-                return input.Date.AddDays(-1);
-            }
-            return input.Date;
         }
     }
 

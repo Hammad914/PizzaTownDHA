@@ -59,7 +59,6 @@ namespace PizzaTownDHA.Controllers
                 var todayLogs = await kitchenLogService.GetAllAsync();
                 var todaysLogs = todayLogs.Where(k => k.DateLogged.Date == businessDate.Date).ToList();
 
-                // 🔥 VALIDATION LOOP
                 for (int i = 0; i < productIds.Count; i++)
                 {
                     var productId = productIds[i];
@@ -70,13 +69,11 @@ namespace PizzaTownDHA.Controllers
                     var product = allProducts.FirstOrDefault(p => p.Id == productId);
                     if (product == null) continue;
 
-                    // Check ALL ingredients for this product
                     foreach (var recipe in product.ProductIngredients)
                     {
                         var ingredientId = recipe.IngredientId;
                         var requiredQuantity = recipe.QuantityRequired * quantityToMake;
 
-                        // Calculate current stock
                         var audit = await stockAuditService.GetByIngredientAndDateAsync(ingredientId, businessDate);
                         var openingStock = audit?.ActualClosingStock ?? 0;
                         var stockIn = await stockInService.GetByDateAsync(businessDate);
@@ -98,7 +95,6 @@ namespace PizzaTownDHA.Controllers
 
                         var available = openingStock + totalStockIn - usedSoFar;
 
-                        // 🚨 BLOCK if not enough stock
                         if (requiredQuantity > available)
                         {
                             var ingredientName = allIngredients.FirstOrDefault(ing => ing.Id == ingredientId)?.Name;
@@ -108,7 +104,6 @@ namespace PizzaTownDHA.Controllers
                     }
                 }
 
-                // ✅ If all checks pass, save the logs
                 await kitchenLogService.LogMultiAsync(productIds, quantities);
                 TempData["Success"] = "Kitchen logs added successfully!";
                 return RedirectToAction(nameof(Index));
@@ -157,20 +152,16 @@ namespace PizzaTownDHA.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 🚨 STOCK ADJUSTMENT ON EDIT (If Qty Changes)
                 if (existing.QuantityMade != log.QuantityMade)
                 {
-                    // Get old and new product recipes
                     var oldProduct = await productService.GetByIdAsync(existing.ProductId);
                     var newProduct = await productService.GetByIdAsync(log.ProductId);
                     var businessDate = DateTime.Now.Date;
 
-                    // 🔥 ADJUST STOCK FOR INGREDIENTS
                     if (oldProduct != null)
                     {
                         foreach (var recipe in oldProduct.ProductIngredients)
                         {
-                            // If product changed, return old stock
                             if (existing.ProductId != log.ProductId)
                             {
                                 var oldQty = existing.QuantityMade;
@@ -182,7 +173,6 @@ namespace PizzaTownDHA.Controllers
                                     await stockAuditService.UpdateStockAuditAsync(audit);
                                 }
                             }
-                            // If same product but qty decreased, return excess stock
                             else if (log.QuantityMade < existing.QuantityMade)
                             {
                                 var diff = existing.QuantityMade - log.QuantityMade;
@@ -194,7 +184,6 @@ namespace PizzaTownDHA.Controllers
                                     await stockAuditService.UpdateStockAuditAsync(audit);
                                 }
                             }
-                            // If same product but qty increased, check & deduct stock
                             else if (log.QuantityMade > existing.QuantityMade)
                             {
                                 var diff = log.QuantityMade - existing.QuantityMade;
@@ -222,7 +211,6 @@ namespace PizzaTownDHA.Controllers
                         }
                     }
 
-                    // If product changed, add new product's stock deduction
                     if (existing.ProductId != log.ProductId && newProduct != null)
                     {
                         foreach (var recipe in newProduct.ProductIngredients)

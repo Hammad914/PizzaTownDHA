@@ -18,7 +18,7 @@ namespace PizzaTownDHA.Services
             return await db.StockIns
                 .Include(s => s.Ingredient)
                 .ThenInclude(i => i.Unit)
-                .Where(s => !s.IsDeleted) // ✅ Only show non-deleted
+                .Where(s => !s.IsDeleted)
                 .OrderByDescending(s => s.ReceivedDate)
                 .ThenByDescending(s => s.CreatedAt)
                 .ToListAsync();
@@ -36,7 +36,7 @@ namespace PizzaTownDHA.Services
             if (stockIn.Id == Guid.Empty)
                 stockIn.Id = Guid.NewGuid();
 
-            stockIn.CreatedAt = DateTime.UtcNow;
+            stockIn.CreatedAt = DateTime.Now;
             stockIn.IsDeleted = false;
             stockIn.CreatedBy = "System";
 
@@ -51,56 +51,20 @@ namespace PizzaTownDHA.Services
             if (existing == null)
                 throw new InvalidOperationException("Stock In record not found.");
 
-            var oldQty = existing.QuantityReceived;
-            var newQty = stockIn.QuantityReceived;
-            var diff = newQty - oldQty;
-
-            // If diff is negative, stock is being removed
-            if (diff < 0)
-            {
-                var todayAudit = await db.StockAudits.FirstOrDefaultAsync(sa => sa.IngredientId == stockIn.IngredientId && sa.AuditDate.Date == DateTime.Now.Date);
-                if (todayAudit != null)
-                {
-                    // We only remove from the 'Available' amount, not the Used amount
-                    var available = todayAudit.OpeningStock + todayAudit.ActualClosingStock; // This is just an approximation
-                                                                                             // Actually, we need to only allow removal if there is enough *unused* stock
-                                                                                             // The controller now blocks if you try to go below 'used', so just update audit
-                    todayAudit.ActualClosingStock += diff;
-                    db.StockAudits.Update(todayAudit);
-                }
-            }
-            else
-            {
-                // If diff is positive, add stock
-                var todayAudit = await db.StockAudits.FirstOrDefaultAsync(sa => sa.IngredientId == stockIn.IngredientId && sa.AuditDate.Date == DateTime.Now.Date);
-                if (todayAudit != null)
-                {
-                    todayAudit.ActualClosingStock += diff;
-                    db.StockAudits.Update(todayAudit);
-                }
-            }
-
             existing.IngredientId = stockIn.IngredientId;
             existing.QuantityReceived = stockIn.QuantityReceived;
             existing.ReceivedDate = stockIn.ReceivedDate;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
 
             db.StockIns.Update(existing);
             await db.SaveChangesAsync();
             return existing;
         }
+
         public async Task<bool> DeleteStockInAsync(Guid id)
         {
             var stockIn = await db.StockIns.FirstOrDefaultAsync(s => s.Id == id);
             if (stockIn == null) return false;
-
-            // 🚨 STOCK ADJUSTMENT: Remove this stock from inventory
-            var todayAudit = await db.StockAudits.FirstOrDefaultAsync(sa => sa.IngredientId == stockIn.IngredientId && sa.AuditDate.Date == DateTime.Now.Date);
-            if (todayAudit != null)
-            {
-                todayAudit.ActualClosingStock -= stockIn.QuantityReceived;
-                db.StockAudits.Update(todayAudit);
-            }
 
             stockIn.IsDeleted = true;
             await db.SaveChangesAsync();
@@ -112,7 +76,7 @@ namespace PizzaTownDHA.Services
             return await db.StockIns
                 .Include(s => s.Ingredient)
                 .ThenInclude(i => i.Unit)
-                .Where(s => s.ReceivedDate.Date == date.Date && !s.IsDeleted) // ✅ Only show non-deleted
+                .Where(s => s.ReceivedDate.Date == date.Date && !s.IsDeleted)
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
         }

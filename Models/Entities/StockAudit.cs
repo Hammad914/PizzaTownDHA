@@ -9,7 +9,7 @@
         public DateTime AuditDate { get; set; }
         public bool IsDeleted { get; set; } = false;
         public string CreatedBy { get; set; } = "System";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
         public virtual Ingredient? Ingredient { get; set; }

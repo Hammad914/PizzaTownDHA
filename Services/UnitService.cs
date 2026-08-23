@@ -32,12 +32,11 @@ namespace PizzaTownDHA.Services
             if (unit.Id == Guid.Empty)
                 unit.Id = Guid.NewGuid();
 
-            unit.CreatedAt = DateTime.UtcNow;
+            unit.CreatedAt = DateTime.Now;
             unit.IsDeleted = false;
             unit.CreatedBy = "System";
             unit.UpdatedBy = null;
 
-            // Base Unit Logic
             if (unit.IsBaseUnit)
             {
                 var existingBase = await db.Units
@@ -63,7 +62,6 @@ namespace PizzaTownDHA.Services
             if (existingUnit == null)
                 throw new InvalidOperationException("Unit not found.");
 
-            // Strict rule: Only 1 Base Unit per Category
             if (unit.IsBaseUnit)
             {
                 var existingBase = await db.Units.FirstOrDefaultAsync(u =>
@@ -80,7 +78,6 @@ namespace PizzaTownDHA.Services
                 }
             }
 
-            // 🆕 Update: Strict rule: Display Order must be unique
             var duplicateOrder = await db.Units.AnyAsync(u =>
                 u.DisplayOrder == unit.DisplayOrder &&
                 !u.IsDeleted &&
@@ -93,7 +90,6 @@ namespace PizzaTownDHA.Services
                 );
             }
 
-            // Update values
             existingUnit.UnitSymbol = unit.UnitSymbol;
             existingUnit.UnitName = unit.UnitName;
             existingUnit.Category = unit.Category;
@@ -101,7 +97,7 @@ namespace PizzaTownDHA.Services
             existingUnit.IsBaseUnit = unit.IsBaseUnit;
             existingUnit.DisplayOrder = unit.DisplayOrder;
 
-            existingUnit.UpdatedAt = DateTime.UtcNow;
+            existingUnit.UpdatedAt = DateTime.Now;
             existingUnit.UpdatedBy = unit.UpdatedBy ?? "System";
 
             db.Units.Update(existingUnit);
@@ -109,7 +105,6 @@ namespace PizzaTownDHA.Services
             return existingUnit;
         }
 
-        // --- SYMBOL CHECKS ---
         public async Task<bool> UnitSymbolExistsAsync(string unitSymbol)
         {
             return await db.Units.AnyAsync(u => u.UnitSymbol == unitSymbol);
@@ -120,7 +115,6 @@ namespace PizzaTownDHA.Services
             return await db.Units.AnyAsync(u => u.UnitSymbol == unitSymbol && u.Id != currentId);
         }
 
-        // --- NAME CHECKS ---
         public async Task<bool> UnitNameExistsAsync(string unitName)
         {
             return await db.Units.AnyAsync(u => u.UnitName == unitName);
@@ -131,7 +125,6 @@ namespace PizzaTownDHA.Services
             return await db.Units.AnyAsync(u => u.UnitName == unitName && u.Id != currentId);
         }
 
-        // 🆕 DISPLAY ORDER CHECKS
         public async Task<bool> DisplayOrderExistsAsync(int displayOrder)
         {
             return await db.Units.AnyAsync(u => u.DisplayOrder == displayOrder);

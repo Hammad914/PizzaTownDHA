@@ -40,13 +40,10 @@ namespace PizzaTownDHA.Controllers
             if (await unitService.UnitNameExistsAsync(unit.UnitName))
                 ModelState.AddModelError("UnitName", "This name is already taken.");
 
-            // ✅ We DO NOT add ModelError for DisplayOrder here. We do it in the try/catch.
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // 🚨 Move the DisplayOrder check into the SERVICE or here
                     if (await unitService.DisplayOrderExistsAsync(unit.DisplayOrder))
                     {
                         throw new InvalidOperationException($"Display Order '{unit.DisplayOrder}' is already taken. Please choose a different number.");
@@ -85,7 +82,6 @@ namespace PizzaTownDHA.Controllers
         {
             ModelState.Remove("IsBaseUnit");
 
-            // Standard validations
             if (await unitService.UnitSymbolExistsAsync(unit.UnitSymbol, unit.Id))
                 ModelState.AddModelError("UnitSymbol", "This symbol is already taken by another unit.");
 
@@ -96,7 +92,6 @@ namespace PizzaTownDHA.Controllers
             {
                 try
                 {
-                    // 🚨 Move the DisplayOrder check into the SERVICE or here
                     if (await unitService.DisplayOrderExistsAsync(unit.DisplayOrder, unit.Id))
                     {
                         throw new InvalidOperationException($"Display Order '{unit.DisplayOrder}' is already taken. Please choose a different number.");

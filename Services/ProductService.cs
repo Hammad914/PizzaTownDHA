@@ -36,16 +36,14 @@ namespace PizzaTownDHA.Services
             if (product.Id == Guid.Empty)
                 product.Id = Guid.NewGuid();
 
-            product.CreatedAt = DateTime.UtcNow;
+            product.CreatedAt = DateTime.Now;
             product.IsDeleted = false;
             product.CreatedBy = "System";
             product.UpdatedBy = null;
 
-            // 1. Save the Product first
             db.Products.Add(product);
             await db.SaveChangesAsync();
 
-            // 2. Save the Ingredients (Recipe) into ProductIngredients
             for (int i = 0; i < selectedIngredientIds.Count; i++)
             {
                 var productIngredient = new ProductIngredient
@@ -72,7 +70,7 @@ namespace PizzaTownDHA.Services
 
             // 1. Update the Product name
             existingProduct.Name = product.Name;
-            existingProduct.UpdatedAt = DateTime.UtcNow;
+            existingProduct.UpdatedAt = DateTime.Now;
             existingProduct.UpdatedBy = "System";
 
             // 2. Remove old recipe ingredients

@@ -132,7 +132,6 @@ namespace PizzaTownDHA.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 🔥 VALIDATION: Find used quantity for this ingredient
                 var businessDate = DateTime.Now.Date;
                 var allProducts = await productService.GetAllAsync();
                 var todayLogs = await kitchenLogService.GetAllAsync();
@@ -152,14 +151,12 @@ namespace PizzaTownDHA.Controllers
                     }
                 }
 
-                // 🔥 If user decreases below used amount, block
                 if (stockIn.QuantityReceived < usedToday)
                 {
                     TempData["Error"] = $"Cannot decrease stock. {usedToday} units already used today. Minimum stock must be {usedToday}.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                // ✅ If valid, update
                 await stockInService.UpdateStockInAsync(stockIn);
 
                 TempData["Success"] = "Stock In updated successfully!";

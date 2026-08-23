@@ -40,7 +40,7 @@ namespace PizzaTownDHA.Services
                 throw new InvalidOperationException("Tolerance cannot be more than 75%. Please enter a value between 0 and 75.");
             }
 
-            ingredient.CreatedAt = DateTime.UtcNow;
+            ingredient.CreatedAt = DateTime.Now;
             ingredient.IsDeleted = false;
             ingredient.CreatedBy = "System";
             ingredient.UpdatedBy = null;
@@ -69,7 +69,7 @@ namespace PizzaTownDHA.Services
             existing.MinimumStock = ingredient.MinimumStock;
             existing.Tolerance = ingredient.Tolerance;
 
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = DateTime.Now;
             existing.UpdatedBy = "System";
 
             db.Ingredients.Update(existing);
