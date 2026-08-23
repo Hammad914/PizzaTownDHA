@@ -1,4 +1,4 @@
-﻿@model List<PizzaTownDHA.Models.Entities.StockAudit>
+﻿@model List<PizzaTownDHA.Controllers.StockHistoryRow>
 @{
     ViewData["Title"] = "Stock History";
     var businessDate = (DateTime)ViewBag.BusinessDate;
@@ -45,7 +45,6 @@
             color: #222;
         }
 
-    /* Larger, professional buttons */
     .btn-lg-nav {
         padding: 10px 24px;
         font-size: 1rem;
@@ -97,8 +96,10 @@
                         <th class="text-center" style="width: 5%;">#</th>
                         <th class="ps-2">Ingredient</th>
                         <th class="text-center">Opening</th>
-                        <th class="text-center">Actual Closing</th>
-                        <th class="text-center">Audit Date</th>
+                        <th class="text-center">All Ins</th>
+                        <th class="text-center">Used</th>
+                        <th class="text-center">Expected</th>
+                        <th class="text-center">Closing</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -109,10 +110,12 @@
                         {
                             <tr class="data-row">
                                 <td class="text-center fw-bold">@serial</td>
-                                <td class="ps-2 fw-bold">@item.Ingredient?.Name</td>
+                                <td class="ps-2 fw-bold">@item.IngredientName</td>
                                 <td class="text-center">@item.OpeningStock.ToString("0.##")</td>
+                                <td class="text-center text-success">@item.TotalStockIn.ToString("0.##")</td>
+                                <td class="text-center text-danger">@item.Used.ToString("0.##")</td>
+                                <td class="text-center fw-bold">@item.TheoreticalClosing.ToString("0.##")</td>
                                 <td class="text-center">@item.ActualClosingStock.ToString("0.##")</td>
-                                <td class="text-center">@item.AuditDate.ToString("yyyy-MM-dd")</td>
                             </tr>
                             serial++;
                         }
@@ -120,7 +123,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-clock-history d-block mb-2" style="font-size: 3rem; color: #ddd6ce;"></i>
                                 No stock audits found for this day.
                             </td>
@@ -145,42 +148,42 @@
     let allRows = [];
 
     document.addEventListener('DOMContentLoaded', function() {
-        allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
-        applyPagination();
+    allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
+    applyPagination();
     });
 
     document.getElementById('goToDate').addEventListener('click', function(e) {
-        e.preventDefault();
-        let selectedDate = document.getElementById('datePicker').value;
-        if (selectedDate) {
-            window.location.href = '/StockReconciliation/History?date=' + selectedDate;
-        }
+    e.preventDefault();
+    let selectedDate = document.getElementById('datePicker').value;
+    if (selectedDate) {
+    window.location.href = '/StockReconciliation/History?date=' + selectedDate;
+    }
     });
 
     function applyPagination() {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
 
-        let start = (currentPage - 1) * rowsPerPage;
-        let end = start + rowsPerPage;
-        let paginatedRows = allRows.slice(start, end);
+    let start = (currentPage - 1) * rowsPerPage;
+    let end = start + rowsPerPage;
+    let paginatedRows = allRows.slice(start, end);
 
-        paginatedRows.forEach(row => {
-            tableBody.appendChild(row);
-        });
+    paginatedRows.forEach(row => {
+    tableBody.appendChild(row);
+    });
 
-        let totalPages = Math.ceil(allRows.length / rowsPerPage);
-        let container = document.getElementById('paginationControls');
-        container.innerHTML = '';
+    let totalPages = Math.ceil(allRows.length / rowsPerPage);
+    let container = document.getElementById('paginationControls');
+    container.innerHTML = '';
 
-        if (totalPages <= 1) return;
+    if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
-            let btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = function() { currentPage = i; applyPagination(); };
-            container.appendChild(btn);
-        }
+    for (let i = 1; i <= totalPages; i++) {
+    let btn = document.createElement('button');
+    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+    btn.innerText = i;
+    btn.onclick = function() { currentPage = i; applyPagination(); };
+    container.appendChild(btn);
+    }
     }
 </script>

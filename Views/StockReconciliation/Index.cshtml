@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Stock Reconciliation";
     var businessDate = (DateTime)ViewBag.BusinessDate;
+    var units = ViewData["UnitList"] as List<PizzaTownDHA.Models.Entities.Unit>;
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -154,6 +155,9 @@
             <div class="d-flex align-items-center gap-2">
                 <input type="date" id="datePicker" value="@businessDate.ToString("yyyy-MM-dd")" class="form-control" style="height: 34px;" />
                 <a href="#" id="goToDate" class="btn btn-dark btn-uniform">Go</a>
+                <a href="/StockReconciliation/History" class="btn btn-outline-dark btn-uniform">
+                    <i class="bi bi-clock-history me-1"></i> History
+                </a>
             </div>
         </div>
 
@@ -187,8 +191,7 @@
                             <th class="text-center">Expected Stock</th>
                             <th class="text-center">Avail. Stock</th>
                             <th class="text-center">Discrepancy</th>
-                            <th class="text-center">Tolerance %</th>
-                            <th class="text-center">Closing Count</th>
+                            <th class="text-center" style="width: 20%;">Closing Count</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -196,7 +199,6 @@
                         {
                             var item = Model[i];
 
-                            // Calculate Discrepancy Percentage (For display purpose)
                             decimal discrepancyPercentage = item.TheoreticalClosing != 0
                             ? (Math.Abs(item.Discrepancy) / item.TheoreticalClosing) * 100
                             : 0;
@@ -224,10 +226,25 @@
                                         <span class="text-secondary">0 (0%)</span>
                                     }
                                 </td>
-                                <td class="text-center">@item.Tolerance.ToString("0.##")%</td>
                                 <td class="text-center">
-                                    <input type="hidden" name="ingredientIds" value="@item.IngredientId" />
-                                    <input type="number" step="any" class="form-control form-control-sm" name="actualClosingStocks" placeholder="Count" />
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        <input type="hidden" name="ingredientIds" value="@item.IngredientId" />
+                                        <input type="number" step="any" class="form-control form-control-sm" name="actualClosingStocks" placeholder="Count" style="width: 120px; min-width: 90px;" />
+
+                                        <select class="form-select form-select-sm" name="selectedUnitIds" style="width: 70px; min-width: 40px;">
+                                            @foreach (var unit in units)
+                                            {
+                                                @if (unit.Id == item.UnitId)
+                                                {
+                                                    <option value="@unit.Id" selected>@unit.UnitSymbol</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@unit.Id">@unit.UnitSymbol</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -251,106 +268,104 @@
     let allRows = [];
 
     document.addEventListener('DOMContentLoaded', function() {
-        allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
-        applyPagination();
+    allRows = Array.from(document.querySelectorAll('#tableBody .data-row'));
+    applyPagination();
     });
 
-    // Date Picker Navigation
     document.getElementById('goToDate').addEventListener('click', function(e) {
-        e.preventDefault();
-        let selectedDate = document.getElementById('datePicker').value;
-        if (selectedDate) {
-            window.location.href = '/StockReconciliation?date=' + selectedDate;
-        }
-    });
-
-    // Live Search
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        let searchValue = this.value.toLowerCase();
-        let filteredRows = allRows.filter(row => {
-            let text = row.innerText.toLowerCase();
-            return text.includes(searchValue);
-        });
-        currentPage = 1;
-        applyPagination(filteredRows);
-    });
-
-    function filterTable() {
-        document.getElementById('searchInput').dispatchEvent(new Event('keyup'));
+    e.preventDefault();
+    let selectedDate = document.getElementById('datePicker').value;
+    if (selectedDate) {
+    window.location.href = '/StockReconciliation?date=' + selectedDate;
     }
+    });
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+    let searchValue = this.value.toLowerCase();
+    let filteredRows = allRows.filter(row => {
+    let text = row.innerText.toLowerCase();
+    return text.includes(searchValue);
+    });
+    currentPage = 1;
+    applyPagination(filteredRows);
+    });
 
     function applyPagination(rows = allRows) {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
 
-        let start = (currentPage - 1) * rowsPerPage;
-        let end = start + rowsPerPage;
-        let paginatedRows = rows.slice(start, end);
+    let start = (currentPage - 1) * rowsPerPage;
+    let end = start + rowsPerPage;
+    let paginatedRows = rows.slice(start, end);
 
-        paginatedRows.forEach(row => {
-            tableBody.appendChild(row);
-        });
+    paginatedRows.forEach(row => {
+    tableBody.appendChild(row);
+    });
 
-        let totalPages = Math.ceil(rows.length / rowsPerPage);
-        let container = document.getElementById('paginationControls');
-        container.innerHTML = '';
+    let totalPages = Math.ceil(rows.length / rowsPerPage);
+    let container = document.getElementById('paginationControls');
+    container.innerHTML = '';
 
-        if (totalPages <= 1) return;
+    if (totalPages <= 1) return;
 
-        for (let i = 1; i <= totalPages; i++) {
-            let btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = function() { currentPage = i; applyPagination(rows); };
-            container.appendChild(btn);
-        }
+    for (let i = 1; i <= totalPages; i++) {
+    let btn = document.createElement('button');
+    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+    btn.innerText = i;
+    btn.onclick = function() { currentPage = i; applyPagination(rows); };
+    container.appendChild(btn);
+    }
     }
 
-    // 🚨 CRITICAL: MANUAL SUBMIT - ONLY SENDS ROWS WITH VALUES
     document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        let allInputs = document.querySelectorAll('input[name="actualClosingStocks"]');
-        let allIDs = document.querySelectorAll('input[name="ingredientIds"]');
+    let allInputs = document.querySelectorAll('input[name="actualClosingStocks"]');
+    let allIDs = document.querySelectorAll('input[name="ingredientIds"]');
+    let allUnitSelects = document.querySelectorAll('select[name="selectedUnitIds"]');
 
-        let ingredientIds = [];
-        let actualClosingStocks = [];
+    let ingredientIds = [];
+    let actualClosingStocks = [];
+    let selectedUnitIds = [];
 
-        for (let i = 0; i < allInputs.length; i++) {
-            let value = allInputs[i].value;
-            if (value !== "" && value !== null) {
-                ingredientIds.push(allIDs[i].value);
-                actualClosingStocks.push(value);
-            }
-        }
+    for (let i = 0; i < allInputs.length; i++) {
+    let value = allInputs[i].value;
+    let unitValue = allUnitSelects[i].value;
 
-        if (ingredientIds.length === 0) {
-            alert("Please enter at least one stock count!");
-            return;
-        }
+    if (value !== "" && value !== null && unitValue !== "") {
+    ingredientIds.push(allIDs[i].value);
+    actualClosingStocks.push(value);
+    selectedUnitIds.push(unitValue);
+    }
+    }
 
-        // Build a clean FormData
-        let formData = new FormData();
-        formData.append('businessDate', document.querySelector('input[name="businessDate"]').value);
+    if (ingredientIds.length === 0) {
+    alert("Please enter a closing count and select a unit for at least one row!");
+    return;
+    }
 
-        for (let i = 0; i < ingredientIds.length; i++) {
-            formData.append('ingredientIds', ingredientIds[i]);
-            formData.append('actualClosingStocks', actualClosingStocks[i]);
-        }
+    let formData = new FormData();
+    formData.append('businessDate', document.querySelector('input[name="businessDate"]').value);
 
-        fetch('/StockReconciliation/BulkUpdate', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                window.location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+    for (let i = 0; i < ingredientIds.length; i++) {
+    formData.append('ingredientIds', ingredientIds[i]);
+    formData.append('actualClosingStocks', actualClosingStocks[i]);
+    formData.append('selectedUnitIds', selectedUnitIds[i]);
+    }
+
+    fetch('/StockReconciliation/BulkUpdate', {
+    method: 'POST',
+    body: formData
+    })
+    .then(response => {
+    if (response.redirected) {
+    window.location.href = response.url;
+    } else {
+    window.location.reload();
+    }
+    })
+    .catch(error => {
+    console.error('Error:', error);
+    });
     });
 </script>
